@@ -8,12 +8,12 @@ app_path="$(readlink -f "${BASH_SOURCE[0]}")"
 app_script="${app_path##*/}"
 app_dir="${app_path%/*}"
 
-colr_file="${app_dir}/../colr/colr.sh"
+colr_file="${app_dir}/colr.sh"
 if [[ -f "$colr_file" ]]; then
     source "$colr_file"
 else
     function colr {
-        echo -e "$@"
+        echo -e "$1"
     }
 fi
 
