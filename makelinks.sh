@@ -10,7 +10,7 @@ appdir="${apppath%/*}"
 
 function confirm {
     # Confirm a user's answer to a yes/no quesion.
-    [[ -n "$1" ]]&& echo -e "\n$1"
+    [[ -n "$1" ]] && echo -e "\n$1"
     echo -e -n "\nContinue? (y/N): "
     read ans
     yespat='^[Yy]([Ee][Ss])?$'
