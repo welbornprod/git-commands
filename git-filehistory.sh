@@ -2,7 +2,7 @@
 
 # Shortcut to `git log --follow -p -- FILE`
 # -Christopher Welborn 07-11-2015
-appname="gitfilehistory"
+appname="git-filehistory"
 appversion="0.0.2"
 apppath="$(readlink -f "${BASH_SOURCE[0]}")"
 appscript="${apppath##*/}"

@@ -2,8 +2,8 @@
 
 # Shortcut to create git tags as version numbers.
 # -Christopher Welborn 07-10-2015
-appname="gittagversion"
-appversion="0.0.2"
+appname="git-tagversion"
+appversion="0.0.3"
 apppath="$(readlink -f "${BASH_SOURCE[0]}")"
 appscript="${apppath##*/}"
 
@@ -18,7 +18,7 @@ function print_usage {
         $appscript VERSION [MESSAGE...]
 
     Options:
-        MESSAGE       : Messages for this tag.
+        MESSAGE       : Messages for this tag (a paragraph for each argument).
         VERSION       : Version number to use (in the X.X.X form).
         -h,--help     : Show this message.
         -v,--version  : Show $appname version and exit.

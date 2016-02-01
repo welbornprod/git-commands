@@ -13,7 +13,7 @@ import time
 
 from docopt import docopt
 
-NAME = 'Git Authors'
+NAME = 'git-authors'
 VERSION = '0.0.1'
 VERSIONSTR = '{} v. {}'.format(NAME, VERSION)
 SCRIPT = os.path.split(os.path.abspath(sys.argv[0]))[1]
@@ -27,8 +27,8 @@ USAGESTR = """{versionstr}
     Options:
         DIR           : Repo directory to use.
         -h,--help     : Show this help message.
-        -v,--version  : Show version.
-""".format(script=SCRIPT, versionstr=VERSIONSTR)
+        -v,--version  : Show {name} version and exit.
+""".format(name=NAME, script=SCRIPT, versionstr=VERSIONSTR)
 
 
 def main(argd):

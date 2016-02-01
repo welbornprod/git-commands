@@ -2,7 +2,7 @@
 
 # ...A shortcut to: git diff-tree --no-commit-id --name-only -r COMMIT
 # -Christopher Welborn 01-30-2016
-app_name="git-showmodified"
+app_name="git-modified"
 app_ver="0.0.2"
 app_path="$(readlink -f "${BASH_SOURCE[0]}")"
 app_script="${app_path##*/}"
