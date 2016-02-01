@@ -162,7 +162,7 @@ Options:
     -v,--version      : Show git-dirs version and exit.
 ```
 
-#### Show all repos with unpushed commits:
+#### Show all repos with unpushed commits to remote:
 ```
 git dirs -P
 ```
