@@ -156,5 +156,5 @@ errfmt="\nThere was %s error.\n"
 printf_err "$errfmt" "$errs"
 ((! errs)) && echo "Success!"
 
-((existing)) && echo "You will need to remove any existing items."
+((existing)) && echo_err "You will need to remove any existing items."
 exit $errs
