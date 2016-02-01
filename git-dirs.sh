@@ -256,8 +256,8 @@ function print_usage {
     Options:
         DIR               : One or more directories to look for git repos.
                             Default: $PWD
-        -c,--committed    : Only show repos with uncommitted changes.
-        -C,--uncommitted  : Only show repos without uncommitted changes.
+        -c,--committed    : Only show repos without uncommitted changes.
+        -C,--uncommitted  : Only show repos with uncommitted changes.
         -D,--debug        : Print some debugging info while running.
         -h,--help         : Show this message.
         -l,--local        : Only show repos without a remote.
