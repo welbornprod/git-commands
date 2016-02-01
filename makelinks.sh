@@ -112,7 +112,7 @@ elif [[ ! -w "$bin_dir" ]]; then
     fail "\nNo permissions to write to: $bin_dir\n  Do you need sudo?"
 fi
 
-gitcmds=("$appdir"/git-*.sh)
+gitcmds=("$appdir"/git-*.{sh,py})
 (( ${#gitcmds} > 0 )) || fail "No scripts found!: $appdir"
 
 if ((dryrun)); then
@@ -127,6 +127,7 @@ fi
 # Create symlinks, or report any errors that would prevent creating them.
 let errs=0
 let existing=0
+let created=0
 for gitcmd in "${gitcmds[@]}"; do
     gitcmdbase="${gitcmd##*/}"
     gitcmdlnk="${gitcmdbase%%.*}"
@@ -142,6 +143,7 @@ for gitcmd in "${gitcmds[@]}"; do
         printf "%15s %s\n" "Dry run:" "ln -s $appdir/$gitcmd $destname"
     else
         if output="$(ln -s "$gitcmd" "$destname" 2>&1)"; then
+            let created+=1
             printf "%15s %s\n" "Created:" "$destname"
         else
             printf_err "%15s %s\n%19s %s\n" "Failed:" "$destname" "Message:" "${output:-<none>}"
@@ -154,6 +156,10 @@ done
 errfmt="\nThere was %s error.\n"
 (( errs != 1 )) && errfmt="\nThere were %s errors.\n"
 printf_err "$errfmt" "$errs"
+linkfmt="%s link was created.\n"
+(( created != 1 )) && linkfmt="%s links where created.\n"
+# shellcheck disable=SC2059
+printf "$linkfmt" "$created"
 ((! errs)) && echo "Success!"
 
 ((existing)) && echo_err "You will need to remove any existing items."
