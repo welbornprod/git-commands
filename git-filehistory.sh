@@ -3,7 +3,7 @@
 # Shortcut to `git log --follow -p -- FILE`
 # -Christopher Welborn 07-11-2015
 appname="gitfilehistory"
-appversion="0.0.1"
+appversion="0.0.2"
 apppath="$(readlink -f "${BASH_SOURCE[0]}")"
 appscript="${apppath##*/}"
 
@@ -33,25 +33,29 @@ if [[ $# -eq 0 ]]; then
 fi
 
 declare -a args
-show_commits=false
-for arg
-do
-    if [[ "$arg" =~ ^(-h)|(--help)$ ]]; then
-        print_usage ""
-        exit 0
-    elif [[ "$arg" =~ ^(-v)|(--version)$ ]]; then
-        echo -e "$appname v. $appversion\n"
-        exit 0
-    elif [[ "$arg" =~ ^(-c)|(--commits)$ ]]; then
-        show_commits=true
-    else
-        args=("${args[@]}" "$arg")
-    fi
+show_commits=0
+for arg; do
+    case "$arg" in
+        "-h"|"--help" )
+            print_usage ""
+            exit 0
+            ;;
+        "-v"|"--version" )
+            echo -e "$appname v. $appversion\n"
+            exit 0
+            ;;
+        "-c"|"--commits" )
+            show_commits=1
+            ;;
+        * )
+            args=("${args[@]}" "$arg")
+            ;;
+    esac
 done
 
 filename="${args[-1]}"
 unset args[-1]
-if [[ $show_commits == false ]]; then
+if ((! show_commits)); then
     args=("${args[@]}" "-p")
 fi
 # echo "Running: git log --follow ${args[@]} -- $filename"
