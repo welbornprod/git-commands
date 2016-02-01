@@ -3,7 +3,7 @@
 # Shortcut to create git tags as version numbers.
 # -Christopher Welborn 07-10-2015
 appname="gittagversion"
-appversion="0.0.1"
+appversion="0.0.2"
 apppath="$(readlink -f "${BASH_SOURCE[0]}")"
 appscript="${apppath##*/}"
 
@@ -39,35 +39,46 @@ function valid_version {
     fi
     return 0
 }
-if (( $# < 1 )); then
+if (( $# == 0 )); then
     print_usage "Not enough arguments!"
     exit 1
 fi
 
 version=""
 declare -a messages
-for arg
-do
-    if [[ "$arg" =~ ^(-h)|(--help)$ ]]; then
-        print_usage ""
-        exit 0
-    elif [[ "$arg" =~ ^(-v)|(--version)$ ]]; then
-        echo -e "$appname v. $appversion\n"
-        exit 0
-    else
-        if [[ -z "$version" ]]; then
-            version="$arg"
-        else
-            messages=("${messages[@]}" "-m" "$arg")
-        fi
-    fi
+for arg; do
+    case "$arg" in
+        "-h"|"--help" )
+            print_usage ""
+            exit 0
+            ;;
+        "-v"|"--version" )
+            echo -e "$appname v. $appversion\n"
+            exit 0
+            ;;
+        * )
+            if [[ -z "$version" ]]; then
+                version="$arg"
+            else
+                messages=("${messages[@]}" "$arg")
+            fi
+            ;;
+    esac
 done
 
 valid_version "$version" || exit 1
-if (( ${#messages[@]} > 2 )); then
-    msgs="...$((${#messages[@]} / 2)) message paragraphs."
+if (( ${#messages[@]} > 1 )); then
+    # Tell the user how many message args they will be using.
+    msgs="...$((${#messages[@]})) message paragraphs."
 else
-    msgs="${messages[1]-(no message yet)}"
+    # Tell the user what message that will be using, if one is set.
+    msgs="${messages[0]-(no message yet)}"
 fi
+# Build message args (if any).
+declare -a messageargs
+for msg in "${messages[@]}"; do
+    messageargs=("${messageargs[@]}" "-m" "$msg")
+done
+
 echo "Tagging at v${version}: $msgs"
-git tag -a "v$version" -m "${messages[*]}"
+git tag -a "v$version" "${messageargs[@]}"
