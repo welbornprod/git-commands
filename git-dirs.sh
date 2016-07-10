@@ -246,16 +246,22 @@ function print_error {
 function print_usage {
     # Show usage reason if first arg is available.
     [[ -n "$1" ]] && echo -e "\n$1\n"
-
+    # shellcheck disable=SC2028
+    # ...the REPO_CMD example confuses shellcheck.
     echo "$appname v. $appversion
 
     Usage:
         $appscript -h | -v
-        $appscript [-c | -C] [-l | -r] [-p | -P] [DIR...] [-D]
+        $appscript [-c | -C] [-l | -r] [-p | -P] [DIR...] [-D] ([-- REPO_CMD])
 
     Options:
         DIR               : One or more directories to look for git repos.
                             Default: $PWD
+        -- REPO_CMD       : A shell command to run inside of the repo dir.
+                            You must single quote characters such as $, ;, |,
+                            etc.
+                            They will be evaluated after switching to the
+                            repo dir.
         -c,--committed    : Only show repos without uncommitted changes.
         -C,--uncommitted  : Only show repos with uncommitted changes.
         -D,--debug        : Print some debugging info while running.
@@ -265,6 +271,16 @@ function print_usage {
         -P,--unpushed     : Only show repos with commits unpushed to remote.
         -r,--remote       : Only show repos with a remote.
         -v,--version      : Show $appname version and exit.
+
+    Notes:
+        -- REPO_CMD :
+        REPO_CMD is a BASH command, and is evaluated after switching to
+        the repo dir. If the \`cd\` command fails, nothing is done.
+        You must put -- before the command.
+        
+        To git a list of modified files in uncommitted repos:
+            git dirs -C -- 'echo -e \"\\n\$PWD\"; git stat | grep modified'
+            * Notice the single quotes around \$PWD, ;, and |.
     "
 }
 
@@ -274,46 +290,113 @@ function print_usage_fail {
     exit 1
 }
 
+function run_user_cmd {
+    # Run a command inside each repo dir.
+    if ((${#user_cmd_args[@]} == 0)); then
+        print_error "No user command to run!"
+        return 1
+    fi
+    local errs=0 usercmd="${user_cmd_args[0]}"
+    user_cmd_args=(${user_cmd_args[@]:1})
+
+    while IFS=$'\n' read dname; do
+        print_debug "Switching directory to: $dname"
+        if ! cd "$dname"; then
+            print_error "Unable to cd to: $dname"
+            let errs+=1
+            continue
+        fi
+        print_debug "Running user command: $usercmd ${user_cmd_args[*]}"
+        eval "$usercmd ${user_cmd_args[*]}" || let errs+=1
+    done < <(print_dirs "${@}")
+    return $errs
+}
+
+in_cmd_arg=0
+declare -a user_cmd_args
+
 for arg; do
     case "$arg" in
         "-c" | "--committed" )
-            (( ! uncommitted_only )) || print_usage_fail "-c cannot be used with -C."
-            committed_only=1
+            if ((in_cmd_arg)); then
+                user_cmd_args+=("$arg")
+            else
+                (( ! uncommitted_only )) || print_usage_fail "-c cannot be used with -C."
+                committed_only=1
+            fi
             ;;
         "-C"|"--uncommitted" )
-            (( ! committed_only )) || print_usage_fail "-c cannot be used with -C."
-            uncommitted_only=1
+            if ((in_cmd_arg)); then
+                user_cmd_args+=("$arg")
+            else
+                (( ! committed_only )) || print_usage_fail "-c cannot be used with -C."
+                uncommitted_only=1
+            fi
             ;;
         "-D"|"--debug" )
-            debug_mode=1
+            if ((in_cmd_arg)); then
+                user_cmd_args+=("$arg")
+            else
+                debug_mode=1
+            fi
             ;;
         "-h"|"--help" )
-            print_usage ""
-            exit 0
+            if ((in_cmd_arg)); then
+                user_cmd_args+=("$arg")
+            else
+                print_usage ""
+                exit 0
+            fi
             ;;
         "-l"|"--local" )
-            nonremote_only=1
+            if ((in_cmd_arg)); then
+                user_cmd_args+=("$arg")
+            else
+                nonremote_only=1
+            fi
             ;;
         "-p"|"--pushed" )
             (( ! unpushed_only )) || print_usage_fail "-p cannot be used with -P."
             pushed_only=1
             ;;
         "-P"|"--unpushed" )
-            (( ! pushed_only )) || print_usage_fail "-p cannot be used with -P."
-            unpushed_only=1
+            if ((in_cmd_arg)); then
+                user_cmd_args+=("$arg")
+            else
+                (( ! pushed_only )) || print_usage_fail "-p cannot be used with -P."
+                unpushed_only=1
+            fi
             ;;
         "-r"|"--remote" )
-            remote_only=1
+            if ((in_cmd_arg)); then
+                user_cmd_args+=("$arg")
+            else
+                remote_only=1
+            fi
             ;;
         "-v"|"--version" )
-            echo -e "$appname v. $appversion\n"
-            exit 0
+            if ((in_cmd_arg)); then
+                user_cmd_args+=("$arg")
+            else
+                echo -e "$appname v. $appversion\n"
+                exit 0
+            fi
             ;;
         -*)
-            print_usage_fail "Unknown flag argument: $arg"
+            if ((!in_cmd_arg)) && [[ "$arg" == "--" ]]; then
+                in_cmd_arg=1
+            elif ((in_cmd_arg)); then
+                user_cmd_args+=("$arg")
+            else
+                print_usage_fail "Unknown flag argument: $arg"
+            fi
             ;;
         *)
-            start_dirs=("${start_dirs[@]}" "$arg")
+            if ((in_cmd_arg)); then
+                user_cmd_args+=("$arg")
+            else
+                start_dirs+=("$arg")
+            fi
     esac
 done
 if (( ${#start_dirs[@]} == 0 )); then
@@ -329,12 +412,18 @@ for startdir in "${start_dirs[@]}"; do
         [[ -d "$dname/.git" ]] && git_dirs=("${git_dirs[@]}" "$dname")
     done < <(find "$startdir" -type d -print0)
 
-    if (( debug_mode )); then
-        print_dirs "${git_dirs[@]}" || let errs+=1
+    if ((${#user_cmd_args[@]})); then
+        run_user_cmd "${git_dirs[@]}" || let errs+=$?
     else
-        print_dirs "${git_dirs[@]}" | sort
-        exitcode=${PIPE_STATUS[0]}
-        (( exitcode == 0 )) || let errs+=1
+        if (( debug_mode )); then
+
+            # No sorting in debug mode.
+            print_dirs "${git_dirs[@]}" || let errs+=1
+        else
+            print_dirs "${git_dirs[@]}" | sort
+            exitcode=${PIPE_STATUS[0]}
+            (( exitcode == 0 )) || let errs+=1
+        fi
     fi
 done
 
