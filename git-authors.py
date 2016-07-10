@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """ git-authors.py
-    ...
+    Get a list of authors for a git repo.
     -Christopher Welborn 06-16-2015
 """
 

@@ -3,10 +3,12 @@
 # Bash color function to colorize text by name, instead of number.
 # Also includes maps from name to escape code for fore, back, and styles.
 # -Christopher Welborn 08-27-2015
-appname="Colr"
-appversion="0.0.2"
-apppath="$(readlink -f "${BASH_SOURCE[0]}")"
-appscript="${apppath##*/}"
+
+# Variables are namespaced to not interfere when sourced.
+colr_app_name="Colr"
+colr_app_version="0.0.2"
+colr_app_path="$(readlink -f "${BASH_SOURCE[0]}")"
+colr_app_script="${colr_app_path##*/}"
 
 # Functions to format a color number into an actual escape code.
 function codeformat {
@@ -23,9 +25,7 @@ function extbackformat {
 }
 
 # Maps from color/style name -> escape code.
-declare -A fore
-declare -A back
-declare -A style
+declare -A fore back style
 
 function build_maps {
     # Build the fore/back maps.
@@ -87,9 +87,7 @@ function colr {
     local backcolr="${3:-reset}"
     local stylename="${4:-normal}"
 
-    local codes
-    declare -a codes
-    declare -a resetcodes
+    declare -a codes resetcodes
     if [[ "$stylename" =~ ^reset ]]; then
         resetcodes=("${style[$stylename]}" "${resetcodes[@]}")
     else
@@ -127,11 +125,11 @@ function print_usage {
     # Show usage reason if first arg is available.
     [[ -n "$1" ]] && echo -e "\n$1\n"
 
-    echo "${fore[blue]}${style[bright]}$appname v. $appversion${style[reset]}
+    echo "${fore[blue]}${style[bright]}$colr_app_name v. $colr_app_version${style[reset]}
 
     Usage:${fore[magenta]}
-        $appscript -h | -v
-        $appscript TEXT FORE [BACK] [STYLE]
+        $colr_app_script -h | -v
+        $colr_app_script TEXT FORE [BACK] [STYLE]
     ${style[reset]}
     Options:${fore[green]}
         BACK          : Name of back color for the text.
@@ -139,7 +137,7 @@ function print_usage {
         STYLE         : Name of style for the text.
         TEXT          : Text to colorize.
         -h,--help     : Show this message.
-        -v,--version  : Show $appname version and exit.
+        -v,--version  : Show $colr_app_name version and exit.
     ${style[reset]}
     "
 }
@@ -160,7 +158,7 @@ if [[ "$0" == "$BASH_SOURCE" ]]; then
                 exit 0
                 ;;
             "-v"|"--version" )
-                echo -e "$appname v. $appversion\n"
+                echo -e "$colr_app_name v. $colr_app_version\n"
                 exit 0
                 ;;
             -*)
