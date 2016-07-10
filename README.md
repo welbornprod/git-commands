@@ -219,6 +219,37 @@ The default action is to show locally modified files.
 If no files have been modified, the last commit is used.
 ```
 
+git-pkg
+-------
+
+Like `git-archive`, this creates a `.tar.gz` file from a git repo.
+
+### Usage:
+```
+Usage:
+    git-pkg -h | -v
+    git-pkg FILE [REPO] [-e excludepattern] [-i includepattern] [-d]
+    git-pkg -l [-e excludepattern] [-i includepattern] [REPO]
+
+
+Options:
+    FILE                  : Resulting package name.
+                            '.tar.gz' is appended if not given.
+    REPO                  : Directory for git repo.
+                            Default: ./
+    -d,--dryrun           : Show what would've been added,
+                            don't create a package.
+    -e pat,--exclude pat  : Regex or text for filtering,
+                            if found in a file name the file is excluded.
+    -i pat,--include pat  : Regex or text for filtering,
+                            if found in a file name the file is included,
+                            otherwise the file is excluded.
+                            The exclude flag overrides this.
+    -h,--help             : Show this message.
+    -l,--list             : List files that would be packaged.
+    -v,--version          : Show version.
+```
+
 git-tagversion
 --------------
 
