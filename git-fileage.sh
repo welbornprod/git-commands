@@ -99,9 +99,12 @@ for filename in "${filenames[@]}"; do
         continue
     fi
     ((do_timestamp)) || tstamp="$(date --date="@$tstamp")"
+    filenamefmt="$(colr "$filename" "cyan")"
+    tstampfmt="$(colr "$tstamp" "blue")"
     if ((do_timezone)); then
-        printf "%s: %s (%s)\n" "$filename" "$tstamp" "$tzone"
+        tzonefmt="$(colr "$tzone" "red")"
+        printf "%s: %s (%s)\n" "$filenamefmt" "$tstampfmt" "$tzonefmt"
     else
-        printf "%s: %s\n" "$filename" "$tstamp"
+        printf "%s: %s\n" "$filenamefmt" "$tstampfmt"
     fi
 done
