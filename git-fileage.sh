@@ -89,17 +89,19 @@ for filename in "${filenames[@]}"; do
     if ! output="$(
         git blame --incremental -- "$filename" |
             awk '/committer-time/ { print $2 } /committer-tz/ { print $2 }' |
-                tail -n 2 2>&1)"; then
+                tail -n 2)"; then
         echo_err "Error for: $filename\n  $output"
         continue
     fi
+    [[ -z "$output" ]] && continue
+
     read -rd '' tstamp tzone <<<"$output"
     if ! ((${#tstamp} && ${#tzone})); then
-        echo_err "Missing info for $filename, got:\n  $output"
+        [[ -n "$output" ]] && echo_err "Missing info for $filename, got:\n  $output"
         continue
     fi
     ((do_timestamp)) || tstamp="$(date --date="@$tstamp")"
-    filenamefmt="$(colr "$filename" "cyan")"
+    filenamefmt="$(colr "$(printf "%25s" "$filename")" "cyan")"
     tstampfmt="$(colr "$tstamp" "blue")"
     if ((do_timezone)); then
         tzonefmt="$(colr "$tzone" "red")"
