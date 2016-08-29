@@ -2,6 +2,16 @@
 
 A collection of Python and Bash scripts to add functionality to `git`.
 
+* [git-alias](#git-alias)
+* [git-authors](#git-authors)
+* [git-dirs](#git-dirs)
+* [git-fileage](#git-fileage)
+* [git-filehistory](#git-filehistory)
+* [git-modified](#git-modified)
+* [git-pkg](#git-pkg)
+* [git-tagversion](#git-tagversion)
+
+
 ## Installation:
 
 Symlink each script to somewhere in `$PATH`, with no extension. I've included
