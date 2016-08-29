@@ -65,6 +65,15 @@ function show_first {
     done
 }
 
+function show_first_full {
+    # Show the first commits, with information.
+    local myid
+    for myid in $(git rev-list --max-parents=0 HEAD); do
+        # Show the commit info, up to (not including) the 'diff' line.
+        git show "$myid"
+    done
+}
+
 (( $# > 0 )) || fail_usage "No arguments!"
 
 declare -a filenames
@@ -73,8 +82,12 @@ do_timezone=0
 
 for arg; do
     case "$arg" in
-        "-f"|"--first" )
-            show_first
+        "-f"|"--first"|"-F"|"--firstfull" )
+            if [[ "$arg" == "-F" ]] || [[ "$arg" == "--firstfull" ]]; then
+                show_first_full
+            else
+                show_first
+            fi
             exit
             ;;
         "-h"|"--help" )
