@@ -42,16 +42,27 @@ function print_usage {
 
     Usage:
         $appscript -h | -v
+        $appscript -f
         $appscript [-t] [-z] FILE...
 
     Options:
         FILE            : One or more file names to get the initial commit
                           date for.
+        -f,--first      : Show the first commit for this repo.
         -h,--help       : Show this message.
         -t,--timestamp  : Use the raw timestamp.
         -v,--version    : Show $appname version and exit.
         -z,--timezone   : Show the committer timezone also.
     "
+}
+
+function show_first {
+    # Show the first commits, with information.
+    local myid
+    for myid in $(git rev-list --max-parents=0 HEAD); do
+        # Show the commit info, up to (not including) the 'diff' line.
+        git show "$myid" | sed '/diff/q' | head -n-1
+    done
 }
 
 (( $# > 0 )) || fail_usage "No arguments!"
@@ -62,6 +73,10 @@ do_timezone=0
 
 for arg; do
     case "$arg" in
+        "-f"|"--first" )
+            show_first
+            exit
+            ;;
         "-h"|"--help" )
             print_usage ""
             exit 0
