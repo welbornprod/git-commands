@@ -42,13 +42,14 @@ function print_usage {
 
     Usage:
         $appscript -h | -v
-        $appscript -f
+        $appscript -f | -F
         $appscript [-t] [-z] FILE...
 
     Options:
         FILE            : One or more file names to get the initial commit
                           date for.
-        -f,--first      : Show the first commit for this repo.
+        -F,--firstfull  : Show the first commit(s), with full diff.
+        -f,--first      : Show the first commit(s) for this repo.
         -h,--help       : Show this message.
         -t,--timestamp  : Use the raw timestamp.
         -v,--version    : Show $appname version and exit.

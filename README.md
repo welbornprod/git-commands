@@ -1,10 +1,8 @@
-git-commands
-============
+# git-commands
 
 A collection of Python and Bash scripts to add functionality to `git`.
 
-Installation:
--------------
+## Installation:
 
 Symlink each script to somewhere in `$PATH`, with no extension. I've included
 a small script (`makelinks.sh`) that will do this for you in the safest way
@@ -36,8 +34,7 @@ Make sure you have permissions to write to the directory you choose.
 `sudo` may be needed if you are installing in `/usr/bin` or `/usr/local/bin`.
 
 
-Dependencies:
--------------
+## Dependencies:
 
 ### colr.sh
 
@@ -55,8 +52,7 @@ You can run `./colr.sh --help` to see how this might be used as a command
 line utility.
 
 
-Commands:
-=========
+# Commands:
 
 All of these commands can be invoked normally (`git-authors`), or as a
 `git` subcommand (`git authors`).
@@ -65,8 +61,7 @@ There are no `man` pages for these commands, so running something like
 or `git-authors --help` instead.
 
 
-git-alias
----------
+## git-alias
 
 Replacement for `git-alias` from the `git-extras` package. It provides color
 output when listing aliases. You can also list both global and local aliases
@@ -116,8 +111,7 @@ git alias mything '!echo "okay"'
 git alias -r mything
 ```
 
-git-authors
------------
+## git-authors
 
 Lists all authors (with email addresses) from all commits in a repo.
 
@@ -134,8 +128,7 @@ Options:
     -v,--version  : Show git-authors version and exit.
 ```
 
-git-dirs
---------
+## git-dirs
 
 List all sub directories that are git repos. You can optionally filter results
 based on whether a repo has committed or uncommitted files, pushed or unpushed
@@ -174,8 +167,29 @@ git dirs -l -C
 
 ...you get the idea.
 
-git-filehistory
----------------
+## git-fileage
+
+Shows the age of a file in the repo, or shows the very first commit info.
+There may be more than one "first" commit, if histories were merged.
+
+### Usage:
+```
+Usage:
+    git-fileage -h | -v
+    git-fileage -f | -F
+    git-fileage [-t] [-z] FILE...
+
+Options:
+    FILE            : One or more file names to get the initial commit
+                      date for.
+    -F,--firstfull  : Show the first commit(s), with full diff.
+    -f,--first      : Show the first commit(s) for this repo.
+    -h,--help       : Show this message.
+    -t,--timestamp  : Use the raw timestamp.
+    -v,--version    : Show git-fileage version and exit.
+    -z,--timezone   : Show the committer timezone also.
+```
+## git-filehistory
 
 A shortcut to `git log --follow -p -- FILE`. It displays every commit where
 a certain file has been modified.
@@ -195,8 +209,7 @@ Options:
     -v,--version  : Show git-filehistory version and exit.
 ```
 
-git-modified
-------------
+## git-modified
 
 A mixture of `git stat` and `git diff-tree`. If there are local changes in
 the repo, this command will list all files that were modified. With no
@@ -219,8 +232,7 @@ The default action is to show locally modified files.
 If no files have been modified, the last commit is used.
 ```
 
-git-pkg
--------
+## git-pkg
 
 Like `git-archive`, this creates a `.tar.gz` file from a git repo.
 
@@ -250,8 +262,7 @@ Options:
     -v,--version          : Show version.
 ```
 
-git-tagversion
---------------
+## git-tagversion
 
 A shortcut to `git tag -a`, specifically for making version tags (`vX.X.X`).
 
