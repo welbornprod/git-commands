@@ -139,7 +139,6 @@ function print_dirs {
     local remotecnt
     local skippednonremotecnt
     local total
-
     print_debug "    Listing repos: $#"
     print_debug "   committed_only: $committed_only"
     print_debug " uncommitted_only: $uncommitted_only"
@@ -148,6 +147,7 @@ function print_dirs {
     print_debug "      remote_only: $remote_only"
 
     for dname in "${@}"; do
+        print_debug "Switching to directory: $dname"
         if ! cd "$dname"; then
             print_error "Unable to cd to: $dname"
             let errs+=1
@@ -277,7 +277,7 @@ function print_usage {
         REPO_CMD is a BASH command, and is evaluated after switching to
         the repo dir. If the \`cd\` command fails, nothing is done.
         You must put -- before the command.
-        
+
         To git a list of modified files in uncommitted repos:
             git dirs -C -- 'echo -e \"\\n\$PWD\"; git stat | grep modified'
             * Notice the single quotes around \$PWD, ;, and |.
@@ -409,7 +409,8 @@ for startdir in "${start_dirs[@]}"; do
     declare -a git_dirs
     while read -d $'\0' -r dname; do
         # echo "Looking at: $dname"
-        [[ -d "$dname/.git" ]] && git_dirs=("${git_dirs[@]}" "$dname")
+        # Use absolute paths for git_dirs.
+        [[ -d "$dname/.git" ]] && git_dirs+=("$(readlink -f "$dname")")
     done < <(find "$startdir" -type d -print0)
 
     if ((${#user_cmd_args[@]})); then
