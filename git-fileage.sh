@@ -11,6 +11,7 @@ appdir="${apppath%/*}"
 colr_file="${appdir}/colr.sh"
 if [[ -f "$colr_file" ]]; then
     source "$colr_file"
+    colr_auto_disable
 else
     function colr {
         echo -e "$1"
