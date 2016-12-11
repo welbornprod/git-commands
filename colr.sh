@@ -6,9 +6,12 @@
 
 # Variables are namespaced to not interfere when sourced.
 colr_app_name="Colr"
-colr_app_version="0.0.2"
+colr_app_version="0.1.0"
 colr_app_path="$(readlink -f "${BASH_SOURCE[0]}")"
 colr_app_script="${colr_app_path##*/}"
+
+# This flag can be set with colr_enable or colr_disable.
+colr_disabled=0
 
 # Functions to format a color number into an actual escape code.
 function codeformat {
@@ -83,6 +86,12 @@ build_maps
 function colr {
     # Colorize a string.
     local text="$1"
+    if ((colr_disabled)); then
+        # Color has been globally disabled.
+        echo -en "$text"
+        return
+    fi
+
     local forecolr="${2:-reset}"
     local backcolr="${3:-reset}"
     local stylename="${4:-normal}"
@@ -121,6 +130,38 @@ function colr {
     echo -en "$closing"
 }
 
+function colr_auto_disable {
+    # Auto disable colors if stdout is not a tty,
+    # or if the user supplied file descriptors are not ttys.
+    # Arguments:
+    #  $@ : One or more TTY numbers to check.
+    #       Default: 1
+
+    if (($# == 0)); then
+        # Just check stdout by default.
+        [[ -t "${1:-1}" ]] || colr_disabled=1
+        return
+    fi
+    # Make sure all user's tty args are ttys.
+    local ttynum
+    for ttynum in "$@"; do
+        if [[ ! -t "$ttynum" ]]; then
+            colr_disabled=1
+            break
+        fi
+    done
+}
+
+function colr_enable {
+    # Re-enable colors after colr_disable has been called.
+    colr_disabled=0
+}
+
+function colr_disable {
+    # Disable colors for the `colr` function.
+    colr_disabled=1
+}
+
 function print_usage {
     # Show usage reason if first arg is available.
     [[ -n "$1" ]] && echo -e "\n$1\n"
@@ -149,10 +190,13 @@ export back
 export style
 
 if [[ "$0" == "$BASH_SOURCE" ]]; then
-    declare -a nonflags
-    for arg
-    do
+    declare -a userargs
+    do_forced=0
+    for arg; do
         case "$arg" in
+            "-f"|"--force" )
+                do_forced=1
+                ;;
             "-h"|"--help" )
                 print_usage ""
                 exit 0
@@ -166,10 +210,12 @@ if [[ "$0" == "$BASH_SOURCE" ]]; then
                 exit 1
                 ;;
             *)
-                nonflags=("${nonflags[@]}" "$arg")
+                userargs=("${userargs[@]}" "$arg")
         esac
     done
 
     # Script was executed.
-    colr "${nonflags[@]}"
+    # Automatically disable colors if stdout is not a tty, unless forced.
+    ((do_forced)) || colr_auto_disable 1
+    colr "${userargs[@]}"
 fi
