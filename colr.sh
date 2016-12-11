@@ -6,7 +6,7 @@
 
 # Variables are namespaced to not interfere when sourced.
 colr_app_name="Colr"
-colr_app_version="0.1.0"
+colr_app_version="0.1.1"
 colr_app_path="$(readlink -f "${BASH_SOURCE[0]}")"
 colr_app_script="${colr_app_path##*/}"
 
@@ -139,13 +139,15 @@ function colr_auto_disable {
 
     if (($# == 0)); then
         # Just check stdout by default.
-        [[ -t "${1:-1}" ]] || colr_disabled=1
+        if [[ ! -t 1 ]] || [[ -p 1 ]]; then
+            colr_disabled=1
+        fi
         return
     fi
     # Make sure all user's tty args are ttys.
     local ttynum
     for ttynum in "$@"; do
-        if [[ ! -t "$ttynum" ]]; then
+        if [[ ! -t "$ttynum" ]] || [[ -p "$ttynum" ]]; then
             colr_disabled=1
             break
         fi
