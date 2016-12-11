@@ -61,6 +61,8 @@ It exports a `colr` function, and a map of colr/style names to escape codes
 You can run `./colr.sh --help` to see how this might be used as a command
 line utility.
 
+The latest version of `colr.sh` is available at
+[github.com/welbornprod/colr.sh](https://github.com/welbornprod/colr.sh)
 
 # Commands:
 
@@ -217,6 +219,24 @@ Options:
     -c,--commits  : Show commits instead of diffs.
     -h,--help     : Show this message.
     -v,--version  : Show git-filehistory version and exit.
+```
+
+## git-listsubmodules
+
+List submodule paths and urls for a repo.
+
+### Usage:
+```
+Usage:
+     git-listsubmodules -h | -v
+     git-listsubmodules [PATTERN...]
+
+ Options:
+     PATTERN       : Only list submodules with names matching PATTERN.
+                     PATTERN can be a text or regex pattern.
+                     The submodule name only needs to match one pattern.
+     -h,--help     : Show this message.
+     -v,--version  : Show git-listsubmodules version and exit.
 ```
 
 ## git-modified
