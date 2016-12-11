@@ -7,6 +7,7 @@ A collection of Python and Bash scripts to add functionality to `git`.
 * [git-dirs](#git-dirs)
 * [git-fileage](#git-fileage)
 * [git-filehistory](#git-filehistory)
+* [git-listsubmodules](#git-listsubmodules)
 * [git-modified](#git-modified)
 * [git-pkg](#git-pkg)
 * [git-tagversion](#git-tagversion)
