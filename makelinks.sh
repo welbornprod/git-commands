@@ -8,6 +8,8 @@ apppath="$(readlink -f "${BASH_SOURCE[0]}")"
 appscript="${apppath##*/}"
 appdir="${apppath%/*}"
 
+shopt -s nullglob
+
 function confirm {
     # Confirm a user's answer to a yes/no quesion.
     [[ -n "$1" ]] && echo -e "\n$1"
@@ -113,7 +115,7 @@ elif [[ ! -w "$bin_dir" ]]; then
 fi
 
 gitcmds=("$appdir"/git-*.{sh,py})
-(( ${#gitcmds} > 0 )) || fail "No scripts found!: $appdir"
+(( ${#gitcmds[@]} > 0 )) || fail "No scripts found!: $appdir"
 
 if ((dryrun)); then
     echo -e "\nDry run, not creating anything...\n"
