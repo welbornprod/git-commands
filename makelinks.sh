@@ -71,7 +71,7 @@ function select_path {
     #     echo "Success: $mypath"
     # else
     #     echo "No path selected."
-    local pathdirs=($(printf "%s" "$PATH" | tr ':' '\n' | sort))
+    local pathdirs=($(printf "%s" "${PATH//:/$'\n'}" | sort))
     ((${#pathdirs} > 0)) || {
         printf "Failed to find \$PATH directories!\n" 1>&2
         return 1
