@@ -1,9 +1,10 @@
-# git-commands
+# Git command collection
 
 A collection of Python and Bash scripts to add functionality to `git`.
 
 * [git-alias](#git-alias)
 * [git-authors](#git-authors)
+* [git-commands](#git-commands)
 * [git-dirs](#git-dirs)
 * [git-fileage](#git-fileage)
 * [git-filehistory](#git-filehistory)
@@ -139,6 +140,26 @@ Options:
     DIR           : Repo directory to use.
     -h,--help     : Show this help message.
     -v,--version  : Show git-authors version and exit.
+```
+
+## git-commands
+
+List all git subcommands that can be used, optionally filtering by local/system
+command or by text/regex pattern.
+
+### Usage:
+```
+Usage:
+    git-commands -h | -v
+    git-commands [-D] [-l] [PATTERN]
+
+Options:
+    PATTERN       : Only show subcommands with a file path matching
+                    PATTERN (a text or regex pattern).
+    -D,--debug    : Print some debugging info while running.
+    -h,--help     : Show this message.
+    -l,--local    : Show local git subcommands only, no system commands.
+    -v,--version  : Show git-commands version and exit.
 ```
 
 ## git-dirs
