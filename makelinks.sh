@@ -60,10 +60,24 @@ function printf_err {
 }
 
 function select_path {
-    # Select a directory in $PATH.
-    pathdirs=($(echo "$PATH" | tr ':' '\n' | sort))
-    (( ${#pathdirs} > 0 )) || fail "Failed to find \$PATH directories!"
-    PS3="Choose the installation path: "
+    # BASH function to make the user select a directory in $PATH.
+    # Outputs the path on success, returns 1 on error, and 2 when
+    # no path is selected.
+    # Arguments:
+    #     $1 : Prompt for the select menu.
+    #          Default: "Choose the installation path:"
+    # Example usage:
+    # if mypath="$(select_path)"; then
+    #     echo "Success: $mypath"
+    # else
+    #     echo "No path selected."
+    local pathdirs=($(printf "%s" "$PATH" | tr ':' '\n' | sort))
+    ((${#pathdirs} > 0)) || {
+        printf "Failed to find \$PATH directories!\n" 1>&2
+        return 1
+    }
+    PS3=$'\n'"Type \`c\` to cancel."$'\n'"${1:-Choose the installation path:} "
+    local usepath
     select usepath in "${pathdirs[@]}"; do
         case "${#usepath}" in
             0 )
@@ -102,7 +116,7 @@ for arg; do
 done
 
 # Get installation directory, make sure it's valid.
-if ! bin_dir="$(select_path)"; then
+if ! bin_dir="$(select_path "Choose the installation path:")"; then
     echo_err "Quitting."
     exit 2
 fi
@@ -142,7 +156,7 @@ for gitcmd in "${gitcmds[@]}"; do
         let errs+=1
         let existing+=1
     elif ((dryrun)); then
-        printf "%15s %s\n" "Dry run:" "ln -s $appdir/$gitcmd $destname"
+        printf "%15s %s\n" "Dry run:" "ln -s $gitcmd $destname"
     else
         if output="$(ln -s "$gitcmd" "$destname" 2>&1)"; then
             let created+=1
