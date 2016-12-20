@@ -4,7 +4,7 @@
 # -Christopher Welborn 01-15-2016
 
 app_name="git-alias"
-app_version="0.1.0"
+app_version="0.1.1"
 app_path="$(readlink -f "${BASH_SOURCE[0]}")"
 app_script="${app_path##*/}"
 app_dir="${app_path%/*}"
@@ -43,7 +43,7 @@ function alias_list {
 
         # Make sure this is an actual command.
         # Newlines in alias commands will wreck `read`.
-        if ! cmd="$(git config --get "alias.$cmdname" 2>/dev/null)"; then
+        if ! cmd="$(git "${gitargs[@]}" --get "alias.$cmdname" 2>/dev/null)"; then
             continue
         fi
         # Fix any newlines that may be in the command.
