@@ -4,7 +4,7 @@
 # -Christopher Welborn 01-15-2016
 
 app_name="git-alias"
-app_version="0.0.5"
+app_version="0.1.0"
 app_path="$(readlink -f "${BASH_SOURCE[0]}")"
 app_script="${app_path##*/}"
 app_dir="${app_path%/*}"
@@ -51,18 +51,9 @@ function alias_list {
         # colr to make a real one. I don't know what else to do, except
         # at least indent the real newline so that it looks like it belongs.
         cmd="${cmd//$'\n'/\\n$cmdname_indent}"
-        if [[ -z "$pat" ]]; then
-            # List all
-            echo -e "$(colr_alias "$cmdname" "$cmd")"
-            found=1
-        else
-            # List matching
-            if egrep "$pat" <<< "$line" &>/dev/null; then
-                echo -e "$(colr_alias "$cmdname" "$cmd")"
-                found=1
-            fi
-        fi
-    done < <(git "${gitargs[@]}" --get-regexp alias | sed s/alias.//)
+        echo -e "$(colr_alias "$cmdname" "$cmd")"
+        found=1
+    done < <(git "${gitargs[@]}" --get-regexp "alias..+?$pat.+?" | sed s/alias.//)
     # Return an error exit status if nothing was found.
     (( found )) || return 1
     return 0
