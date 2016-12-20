@@ -4,7 +4,7 @@
 # -Christopher Welborn 01-15-2016
 
 app_name="git-alias"
-app_version="0.0.4"
+app_version="0.0.5"
 app_path="$(readlink -f "${BASH_SOURCE[0]}")"
 app_script="${app_path##*/}"
 app_dir="${app_path%/*}"
@@ -21,6 +21,8 @@ else
     }
 fi
 
+cmdname_space=20
+cmdname_indent="$(printf "%*s" "$((cmdname_space + 1))" " ")"
 
 function alias_list {
     # Search or list all aliases.
@@ -36,9 +38,19 @@ function alias_list {
     else
         echo " matching '$pat':"
     fi
-    while read -r line; do
+    while read -r -s line; do
         cmdname="$(cut -d' ' -f1 <<<"$line")"
-        cmd="$(cut -d' ' -f2- <<<"$line")"
+
+        # Make sure this is an actual command.
+        # Newlines in alias commands will wreck `read`.
+        if ! cmd="$(git config --get "alias.$cmdname" 2>/dev/null)"; then
+            continue
+        fi
+        # Fix any newlines that may be in the command.
+        # The real newline looks ugly, the escaped newline is unescaped by
+        # colr to make a real one. I don't know what else to do, except
+        # at least indent the real newline so that it looks like it belongs.
+        cmd="${cmd//$'\n'/\\n$cmdname_indent}"
         if [[ -z "$pat" ]]; then
             # List all
             echo -e "$(colr_alias "$cmdname" "$cmd")"
@@ -50,7 +62,7 @@ function alias_list {
                 found=1
             fi
         fi
-    done <<<"$(git "${gitargs[@]}" --get-regexp alias | sed s/alias.//)"
+    done < <(git "${gitargs[@]}" --get-regexp alias | sed s/alias.//)
     # Return an error exit status if nothing was found.
     (( found )) || return 1
     return 0
@@ -92,12 +104,14 @@ function colr_alias {
 
 function colr_cmd {
     # Colorize command.
-    echo -e -n "$(colr "$(printf "%-20s" "$1")" blue)"
+    echo -e -n "$(colr "$(printf "%s" "$1")" blue)"
 }
 
 function colr_cmdname {
     # Colorize command name.
-    echo -e -n "$(colr "$(printf "%-20s" "$1")" green)"
+    local cmdfmt
+    cmdfmt="$(printf "%-*s" "$cmdname_space" "$1")"
+    echo -e -n "$(colr "$cmdfmt" green)"
 }
 
 function echo_err {
