@@ -4,7 +4,7 @@
 # Optionally, print only committed or uncommitted repos.
 # -Christopher Welborn 11-28-2015
 appname="git-dirs"
-appversion="0.0.3"
+appversion="0.0.4"
 apppath="$(readlink -f "${BASH_SOURCE[0]}")"
 appscript="${apppath##*/}"
 # appdir="${apppath%/*}"
@@ -411,8 +411,8 @@ for startdir in "${start_dirs[@]}"; do
     while read -d $'\0' -r dname; do
         # echo "Looking at: $dname"
         # Use absolute paths for git_dirs.
-        [[ -d "$dname/.git" ]] && git_dirs+=("$(readlink -f "$dname")")
-    done < <(find "$startdir" -type d -print0)
+        git_dirs+=("$(readlink -f "${dname%/*}")")
+    done < <(find "$startdir" -type d -name ".git" -print0)
 
     if ((${#user_cmd_args[@]})); then
         run_user_cmd "${git_dirs[@]}" || let errs+=$?
