@@ -399,6 +399,7 @@ for arg; do
             fi
     esac
 done
+
 if (( ${#start_dirs[@]} == 0 )); then
     start_dirs=("${start_dirs[@]}" "$PWD")
 fi
