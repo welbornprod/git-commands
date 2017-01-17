@@ -4,7 +4,7 @@
 # Optionally, print only committed or uncommitted repos.
 # -Christopher Welborn 11-28-2015
 appname="git-dirs"
-appversion="0.0.4"
+appversion="0.0.5"
 apppath="$(readlink -f "${BASH_SOURCE[0]}")"
 appscript="${apppath##*/}"
 # appdir="${apppath%/*}"
@@ -147,7 +147,7 @@ function print_dirs {
     print_debug "      remote_only: $remote_only"
 
     for dname in "${@}"; do
-        print_debug "Switching to directory: $dname"
+        # print_debug "Switching to directory: $dname"
         if ! cd "$dname"; then
             print_error "Unable to cd to: $dname"
             let errs+=1
@@ -222,7 +222,7 @@ function print_dirs {
     print_debug_cnt "Committed repos" "${committedcnt:-0}"
     print_debug_cnt "Uncommitted repos" "${uncommittedcnt:-0}"
     print_debug_cnt "Remote repos" "${remotecnt:-0}"
-    print_debug_cnt "Remote skipped" "${skippedremotecnt}"
+    print_debug_cnt "Remote skipped" "${skippedremotecnt:-0}"
     print_debug_cnt "Non-remote" "${nonremotecnt:-0}"
     print_debug_cnt "Non-remote skipped" "${skippednonremotecnt:-0}"
     print_debug_cnt "Remote pushed" "${pushedcnt:-0}"
@@ -299,7 +299,7 @@ function run_user_cmd {
     local errs=0 usercmd="${user_cmd_args[0]}"
     user_cmd_args=(${user_cmd_args[@]:1})
 
-    while IFS=$'\n' read dname; do
+    while IFS=$'\n' read -r dname; do
         print_debug "Switching directory to: $dname"
         if ! cd "$dname"; then
             print_error "Unable to cd to: $dname"
