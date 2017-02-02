@@ -11,6 +11,7 @@ A collection of Python and Bash scripts to add functionality to `git`.
 * [git-listsubmodules](#git-listsubmodules)
 * [git-modified](#git-modified)
 * [git-pkg](#git-pkg)
+* [git-size-diff](#git-size-diff)
 * [git-tagversion](#git-tagversion)
 
 
@@ -312,6 +313,30 @@ Options:
     -h,--help             : Show this message.
     -l,--list             : List files that would be packaged.
     -v,--version          : Show version.
+```
+
+## git-size-diff
+
+Compare file sizes between branches/trees with `diff-tree`, or check file
+sizes based on `diff-index`. The output is formatted with colors, and for
+`diff-tree` the size changes are shown.
+
+### Usage:
+```
+Usage:
+    git-size-diff -h | -v
+    git-size-diff [-D] DIFF_TREE_ARGS...
+    git-size-diff [-D] -c [DIFF_INDEX_ARGS...] TREEISH [PATH...]
+
+Options:
+    DIFF_TREE_ARGS   : Branches, or other options for `diff-tree`.
+    DIFF_INDEX_ARGS  : Extra options for `diff-index`.
+    TREEISH          : Tree-like arg for `diff-index`.
+    PATH             : Extra path option for `diff-index`.
+    -c,--cached      : Use local cached information.
+    -D,--debug       : Debug mode, print some more info.
+    -h,--help        : Show this message.
+    -v,--version     : Show git-size-diff version and exit.
 ```
 
 ## git-tagversion
