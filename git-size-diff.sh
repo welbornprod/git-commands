@@ -128,6 +128,15 @@ fi
 
 total=0
 while read -r srcmode dstmode srcsha1 dstsha1 status srcpath dstpath; do
+    # Known statuses (I only need M, A, and D for size changes. Maybe T?):
+    # A: addition of a file
+    # C: copy of a file into a new one
+    # D: deletion of a file
+    # M: modification of the contents or mode of a file
+    # R: renaming of a file
+    # T: change in the type of the file
+    # U: file is unmerged (you must complete the merge before it can be committed)
+    # X: "unknown" change type (most probably a bug, please report it)
     case "$status" in
         M)
             pathcolor="yellow"
