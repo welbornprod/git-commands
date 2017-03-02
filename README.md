@@ -211,19 +211,23 @@ There may be more than one "first" commit, if histories were merged.
 ```
 Usage:
     git-fileage -h | -v
-    git-fileage -f | -F
+    git-fileage -f | -F [GIT_SHOW_ARGS...]
     git-fileage [-t] [-z] FILE...
 
 Options:
-    FILE            : One or more file names to get the initial commit
-                      date for.
-    -F,--firstfull  : Show the first commit(s), with full diff.
-    -f,--first      : Show the first commit(s) for this repo.
-    -h,--help       : Show this message.
-    -t,--timestamp  : Use the raw timestamp.
-    -v,--version    : Show git-fileage version and exit.
-    -z,--timezone   : Show the committer timezone also.
+    FILE             : One or more file names to get the initial commit
+                       date for.
+    GIT_SHOW_ARGS    : Extra arguments for `git show <commit_id>`.
+    -F,--firstfull   : Show the first commit(s), with full diff.
+    -f,--first       : Alias for `git-fileage -f --no-patch`.
+                       Only the commit header is shown, not the diff.
+    -h,--help        : Show this message.
+    -t,--timestamp   : Use the raw timestamp.
+    -v,--version     : Show git-fileage version and exit.
+    -z,--timezone    : Show the committer timezone also.
+
 ```
+
 ## git-filehistory
 
 A shortcut to `git log --follow -p -- FILE`. It displays every commit where
