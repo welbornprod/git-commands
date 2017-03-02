@@ -6,7 +6,7 @@
 
 # Variables are namespaced to not interfere when sourced.
 colr_app_name="Colr"
-colr_app_version="0.2.0"
+colr_app_version="0.2.1"
 colr_app_path="$(readlink -f "${BASH_SOURCE[0]}")"
 colr_app_script="${colr_app_path##*/}"
 
