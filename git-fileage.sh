@@ -3,13 +3,14 @@
 # Shows the first commit date for a file, using `git blame`.
 # -Christopher Welborn 08-01-2016
 appname="git-fileage"
-appversion="0.0.1"
+appversion="0.1.0"
 apppath="$(readlink -f "${BASH_SOURCE[0]}")"
 appscript="${apppath##*/}"
 appdir="${apppath%/*}"
 
 colr_file="${appdir}/colr.sh"
 if [[ -f "$colr_file" ]]; then
+    # shellcheck source=/home/cj/scripts/git-commands/colr.sh
     source "$colr_file"
     colr_auto_disable
 else
@@ -43,54 +44,50 @@ function print_usage {
 
     Usage:
         $appscript -h | -v
-        $appscript -f | -F
+        $appscript -f | -F [GIT_SHOW_ARGS...]
         $appscript [-t] [-z] FILE...
 
     Options:
-        FILE            : One or more file names to get the initial commit
-                          date for.
-        -F,--firstfull  : Show the first commit(s), with full diff.
-        -f,--first      : Show the first commit(s) for this repo.
-        -h,--help       : Show this message.
-        -t,--timestamp  : Use the raw timestamp.
-        -v,--version    : Show $appname version and exit.
-        -z,--timezone   : Show the committer timezone also.
+        FILE             : One or more file names to get the initial commit
+                           date for.
+        GIT_SHOW_ARGS    : Extra arguments for \`git show <commit_id>\`.
+        -F,--firstfull   : Show the first commit(s), with full diff.
+        -f,--first       : Alias for \`$appscript -f --no-patch\`.
+                           Only the commit header is shown, not the diff.
+        -h,--help        : Show this message.
+        -t,--timestamp   : Use the raw timestamp.
+        -v,--version     : Show $appname version and exit.
+        -z,--timezone    : Show the committer timezone also.
     "
 }
 
 function show_first {
     # Show the first commits, with information.
+    # Arguments:
+    #   $@  : Extra arguments for `git show`.
     local myid
     for myid in $(git rev-list --max-parents=0 HEAD); do
-        # Show the commit info, up to (not including) the 'diff' line.
-        git show "$myid" | sed '/diff/q' | head -n-1
-    done
-}
-
-function show_first_full {
-    # Show the first commits, with information.
-    local myid
-    for myid in $(git rev-list --max-parents=0 HEAD); do
-        # Show the commit info, up to (not including) the 'diff' line.
-        git show "$myid"
+        # Show the commit info,using git show args to determine the format.
+        git show "$@" "$myid"
     done
 }
 
 (( $# > 0 )) || fail_usage "No arguments!"
 
-declare -a filenames
+declare -a nonflags
 do_timestamp=0
 do_timezone=0
+do_first=0
+do_first_full=0
 
 for arg; do
     case "$arg" in
-        "-f"|"--first"|"-F"|"--firstfull" )
-            if [[ "$arg" == "-F" ]] || [[ "$arg" == "--firstfull" ]]; then
-                show_first_full
-            else
-                show_first
-            fi
-            exit
+        "-f"|"--first" )
+            do_first=1
+            ;;
+        "-F"|"--firstfull" )
+            do_first=1
+            do_first_full=1
             ;;
         "-h"|"--help" )
             print_usage ""
@@ -107,15 +104,29 @@ for arg; do
             do_timezone=1
             ;;
         -*)
-            fail_usage "Unknown flag argument: $arg"
+            if ((do_first)); then
+                nonflags+=("$arg")
+            else
+                fail_usage "Unknown flag argument: $arg"
+            fi
             ;;
         *)
-            filenames+=("$arg")
+            nonflags+=("$arg")
     esac
 done
 
-((${#filenames[@]})) || fail_usage "No file names given!"
-for filename in "${filenames[@]}"; do
+if ((do_first)); then
+    if ((! do_first_full)); then
+        # Add --no-patch arg as a default for -f,--first.
+        [[ "${nonflags[*]}" =~ (--no-patch)|(-s ) ]] || nonflags+=("--no-patch")
+    fi
+    show_first "${nonflags[@]}"
+    exit
+fi
+
+# File ages.
+((${#nonflags[@]})) || fail_usage "No file names given!"
+for filename in "${nonflags[@]}"; do
     if ! output="$(
         git blame --incremental -- "$filename" |
             awk '/committer-time/ { print $2 } /committer-tz/ { print $2 }' |
