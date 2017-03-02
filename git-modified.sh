@@ -10,6 +10,7 @@ app_dir="${app_path%/*}"
 
 colr_file="${app_dir}/colr.sh"
 if [[ -f "$colr_file" ]]; then
+    # shellcheck source=/home/cj/scripts/git-commands/colr.sh
     source "$colr_file"
     colr_auto_disable
 else
