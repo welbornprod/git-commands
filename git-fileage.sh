@@ -52,7 +52,7 @@ function print_usage {
                            date for.
         GIT_SHOW_ARGS    : Extra arguments for \`git show <commit_id>\`.
         -F,--firstfull   : Show the first commit(s), with full diff.
-        -f,--first       : Alias for \`$appscript -f --no-patch\`.
+        -f,--first       : Alias for \`$appscript -F --no-patch\`.
                            Only the commit header is shown, not the diff.
         -h,--help        : Show this message.
         -t,--timestamp   : Use the raw timestamp.
