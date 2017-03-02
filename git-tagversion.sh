@@ -31,7 +31,7 @@ function valid_version {
     if [[ ! "$1" =~ $versionpat ]]; then
         echo -e "\nThis doesn't look like a version number (X.X.X): $1\n"
         local answer
-        read -p "Continue? (y/N): " answer
+        read -r -p "Continue? (y/N): " answer
         if [[ ! "$answer" =~ ^[Yy] ]]; then
             echo -e "\nUser cancelled.\n"
             return 1
