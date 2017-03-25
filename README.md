@@ -11,6 +11,7 @@ A collection of Python and Bash scripts to add functionality to `git`.
 * [git-listsubmodules](#git-listsubmodules)
 * [git-modified](#git-modified)
 * [git-pkg](#git-pkg)
+* [git-remotes](#git-remotes)
 * [git-size-diff](#git-size-diff)
 * [git-tagversion](#git-tagversion)
 
@@ -317,6 +318,28 @@ Options:
     -h,--help             : Show this message.
     -l,--list             : List files that would be packaged.
     -v,--version          : Show version.
+```
+
+## git-remotes
+
+List remote urls, branches, and delete remote branches.
+
+### Usage:
+```
+Usage:
+    git-remotes -h | -v
+    git-remotes -b | -B
+    git-remotes -d [BRANCH] [ORIGIN]
+
+Options:
+    BRANCH            : Remote branch name.
+                        You may also use the 'origin/branch' format.
+    ORIGIN            : Origin to work with.
+    -b,--branches     : Show remote branches.
+    -B,--allbranches  : Show all branches.
+    -d,--delete       : Delete a remote branch.
+    -h,--help         : Show this message.
+    -v,--version      : Show git-remotes version and exit.
 ```
 
 ## git-size-diff
