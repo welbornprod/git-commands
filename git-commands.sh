@@ -3,7 +3,7 @@
 # Lists git subcommands.
 # -Christopher Welborn 12-17-2016
 appname="git-commands"
-appversion="0.0.1"
+appversion="0.1.0"
 apppath="$(readlink -f "${BASH_SOURCE[0]}")"
 appscript="${apppath##*/}"
 appdir="${apppath%/*}"
@@ -24,6 +24,27 @@ fi
 debug_mode=0
 
 shopt -s nullglob
+
+function add_values {
+    # Adds up all arguments and prints the result.
+    local sum=0 val
+    for val in "$@"; do
+        ((sum+=val))
+    done
+    printf "%s" "$sum"
+}
+
+function color_msg {
+    colr "$*" "cyan"
+}
+
+function color_number {
+    colr "$*" "blue" "reset" "bright"
+}
+
+function color_pattern {
+    colr "$*" "yellow"
+}
 
 function debug {
     # Echo a debug message to stderr if debug_mode is set.
@@ -98,6 +119,7 @@ function get_sub_commands {
                 printf "%s\n" "$(format_subcommand_short "$cmdname" "$cmdpath")"
             else
                 # Duplicate command.
+                dupecounts[$cmdname]=$((${dupecounts[$cmdname]:-1} + 1))
                 ((do_duplicates)) && {
                     dupecnt=2
                     dupename="${cmdname} ($dupecnt)"
@@ -173,7 +195,10 @@ done
 user_pattern=""
 ((${#userargs[@]})) && user_pattern="${userargs[0]}"
 
+# Holds a map from command name -> command path
 declare -A gitsubcmds
+# A map from command name -> total commands
+declare -A dupecounts
 get_sub_commands "$user_pattern" || {
     failmsg="."
     cmdtype=""
@@ -184,8 +209,22 @@ get_sub_commands "$user_pattern" || {
 
 cmdtype="Subcommand"
 ((do_local)) && cmdtype="Local subcommand"
-lbl="$(colr "${cmdtype}s found" "cyan")"
-[[ -n "$user_pattern" ]] &&  lbl="$lbl $(colr "with" "cyan") $(colr "$user_pattern" "yellow")"
+lbl="$(color_msg "${cmdtype}s found")"
+[[ -n "$user_pattern" ]] &&  lbl="$lbl $(color_msg "with") $(color_pattern "$user_pattern")"
 printf "\n%s: %s\n" \
     "$lbl" \
-    "$(colr "${#gitsubcmds[@]}" "blue" "reset" "bright")"
+    "$(color_number "${#gitsubcmds[@]}")"
+if ((!do_duplicates)) && ((${#dupecounts[@]})); then
+    cmdplural="commands"
+    ((${#dupecounts[@]} == 1)) && cmdplural="commands"
+    printf "%s %s %s\n" \
+        "$(color_number "${#dupecounts[@]}")" \
+        "$(color_msg "$cmdplural")" \
+        "$(color_msg "have duplicates.")"
+    totaldupes="$(add_values "${dupecounts[@]}")"
+    dupeplural="duplicates"
+    ((totaldupes == 1)) && dupeplural="duplicate"
+    printf "%s %s\n" \
+        "$(color_number "$totaldupes")" \
+        "$(color_msg "total $dupeplural found.")"
+fi
