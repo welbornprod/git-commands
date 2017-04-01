@@ -156,12 +156,13 @@ Usage:
     git-commands [-D] [-l] [PATTERN]
 
 Options:
-    PATTERN       : Only show subcommands with a file path matching
-                    PATTERN (a text or regex pattern).
-    -D,--debug    : Print some debugging info while running.
-    -h,--help     : Show this message.
-    -l,--local    : Show local git subcommands only, no system commands.
-    -v,--version  : Show git-commands version and exit.
+    PATTERN          : Only show subcommands with a file path matching
+                       PATTERN (a text or regex pattern).
+    -D,--debug       : Print some debugging info while running.
+    -d,--duplicates  : Show duplicate command names.
+    -h,--help        : Show this message.
+    -l,--local       : Show local git subcommands only, not builtin.
+    -v,--version     : Show git-commands version and exit.
 ```
 
 ## git-dirs

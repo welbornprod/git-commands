@@ -153,9 +153,7 @@ function print_usage {
         PATTERN          : Only show subcommands with a file path matching
                            PATTERN (a text or regex pattern).
         -D,--debug       : Print some debugging info while running.
-        -d,--duplicates  : Show duplicate commands, that would never be
-                           callable as a git subcommand due to \$PATH issues.
-                           This only works when listing all commands.
+        -d,--duplicates  : Show duplicate command names.
         -h,--help        : Show this message.
         -l,--local       : Show local git subcommands only, not builtin.
         -v,--version     : Show $appname version and exit.
