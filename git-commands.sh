@@ -3,7 +3,7 @@
 # Lists git subcommands.
 # -Christopher Welborn 12-17-2016
 appname="git-commands"
-appversion="0.1.0"
+appversion="0.1.1"
 apppath="$(readlink -f "${BASH_SOURCE[0]}")"
 appscript="${apppath##*/}"
 appdir="${apppath%/*}"
@@ -213,12 +213,12 @@ printf "\n%s: %s\n" \
     "$lbl" \
     "$(color_number "${#gitsubcmds[@]}")"
 if ((!do_duplicates)) && ((${#dupecounts[@]})); then
-    cmdplural="commands"
-    ((${#dupecounts[@]} == 1)) && cmdplural="commands"
+    cmdplural="commands have"
+    ((${#dupecounts[@]} == 1)) && cmdplural="command has"
     printf "%s %s %s\n" \
         "$(color_number "${#dupecounts[@]}")" \
         "$(color_msg "$cmdplural")" \
-        "$(color_msg "have duplicates.")"
+        "$(color_msg "duplicates.")"
     totaldupes="$(add_values "${dupecounts[@]}")"
     dupeplural="duplicates"
     ((totaldupes == 1)) && dupeplural="duplicate"
