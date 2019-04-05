@@ -175,9 +175,9 @@ commits, or whether a repo has a remote counterpart, or is local only.
 
 ```
     Usage:
-        git-dirs.sh -h | -v
-        git-dirs.sh [-b BRANCH] [-c | -C] [-l | -r] [-p | -P]
-                    [-q] [DIR...] [-D] ([-- REPO_CMD])
+        git-dirs -h | -v
+        git-dirs [-b BRANCH] [-c | -C] [-l | -r] [-p | -P]
+                 [-q] [DIR...] [-D] ([-- REPO_CMD])
 
     Options:
         DIR                    : One or more directories to look for git repos.
