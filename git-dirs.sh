@@ -10,7 +10,7 @@ appscript="${apppath##*/}"
 # appdir="${apppath%/*}"
 
 # Some color constants.
-red='\e[0;31m' # shellcheck disable=SC2034
+red='\e[0;31m'
 RED='\e[1;31m'
 blue='\e[0;34m'
 cyan='\e[0;36m'
@@ -28,6 +28,23 @@ pushed_only=0
 unpushed_only=0
 remote_only=0
 nonremote_only=0
+# Will quiet `print_error` and `printf_error` when set to 0.
+show_errors=1
+
+function checkout {
+    # git checkout, but only print errors.
+    # Returns the same exit status as the git checkout command.
+    local branch="$1"
+    [[ -n "$branch" ]] || {
+        # shellcheck disable=SC2016
+        # It's not supposed to expand shellcheck, that's the point.
+        print_error 'Missing `branch` argument to `checkout()`!'
+        return 1
+    }
+    # shellcheck disable=SC2069
+    # I am blocking stdout on purpose shellcheck.
+    git checkout "$branch" 2>&1 >/dev/null
+}
 
 function get_changes {
     # Return success exit status if the repo has changes.
@@ -46,7 +63,7 @@ function get_changes {
 function get_current_branch {
     # Output the branch name being worked on.
     local rawname
-    if ! rawname="$(git branch --color=never | egrep --only-matching '\* .+')"; then
+    if ! rawname="$(git branch --color=never | grep -E --only-matching '\* .+')"; then
         print_error "Unable to get branch name!"
         return 1
     else
@@ -68,7 +85,7 @@ function get_remote_name {
 
 function get_remote_name_full {
     local rawname
-    if rawname="$(git branch --color=never -r | egrep '.+/.+' --max-count=1)"; then
+    if rawname="$(git branch --color=never -r | grep -E --max-count=1 '.+/.+')"; then
         tr -d ' ' <<< "$rawname"
     else
         # No remotes.
@@ -139,6 +156,8 @@ function print_dirs {
     local remotecnt
     local skippednonremotecnt
     local total
+    local prevbranch=""
+    local checkouterr=""
     print_debug "    Listing repos: $#"
     print_debug "   committed_only: $committed_only"
     print_debug " uncommitted_only: $uncommitted_only"
@@ -153,6 +172,28 @@ function print_dirs {
             let errs+=1
             continue
         fi
+
+        if [[ -n "$use_branch" ]]; then
+            if prevbranch="$(get_current_branch)"; then
+                # Previous branch is re-checked out later, if available.
+                if ! checkouterr="$(checkout "$use_branch")"; then
+                    if [[ -n "$checkouterr" ]]; then
+                        if [[ "$checkouterr" =~ "local changes" ]]; then
+                            printf_error "%-40s %b[%blocal changes%b]\n" "$dname" "$NC" "$red" "$NC"
+                        else
+                            print_error "\nErrors when checking out '$use_branch' in: $dname"
+                            print_error "$checkouterr"
+                        fi
+                    fi
+                    print_debug "Cancelling, can't checkout branch: $dname"
+                    continue
+                fi
+            else
+                print_debug "Cancelling, can't get branch name: $dname"
+                continue
+            fi
+        fi
+
 
         if get_remote_name_full &>/dev/null; then
             let remotecnt+=1
@@ -215,6 +256,14 @@ function print_dirs {
         fi
 
         echo "$dname"
+
+        # Re-checkout previous branch?
+        if [[ -n "$prevbranch" ]]; then
+            if ! checkouterr="$(checkout "$prevbranch")"; then
+                print_error "\nUnable to checkout previous branch '$prevbranch' in: $dname"
+                [[ -n "$checkouterr" ]] && print_error "$checkouterr"
+            fi
+        fi
         let total+=1
     done
 
@@ -240,7 +289,7 @@ function print_dirs {
 
 function print_error {
     # Write a msg to stderr.
-    echo -e "${RED}" "$@" "${NC}" 1>&2
+    ((show_errors)) && echo -e "${RED}" "$@" "${NC}" 1>&2
 }
 
 function print_usage {
@@ -252,25 +301,30 @@ function print_usage {
 
     Usage:
         $appscript -h | -v
-        $appscript [-c | -C] [-l | -r] [-p | -P] [DIR...] [-D] ([-- REPO_CMD])
+        $appscript [-b BRANCH] [-c | -C] [-l | -r] [-p | -P] [-q] [DIR...] [-D] ([-- REPO_CMD])
 
     Options:
-        DIR               : One or more directories to look for git repos.
-                            Default: $PWD
-        -- REPO_CMD       : A shell command to run inside of the repo dir.
-                            You must single quote characters such as $, ;, |,
-                            etc.
-                            They will be evaluated after switching to the
-                            repo dir.
-        -c,--committed    : Only show repos without uncommitted changes.
-        -C,--uncommitted  : Only show repos with uncommitted changes.
-        -D,--debug        : Print some debugging info while running.
-        -h,--help         : Show this message.
-        -l,--local        : Only show repos without a remote.
-        -p,--pushed       : Only show repos with all commits pushed to remote.
-        -P,--unpushed     : Only show repos with commits unpushed to remote.
-        -r,--remote       : Only show repos with a remote.
-        -v,--version      : Show $appname version and exit.
+        DIR                    : One or more directories to look for git repos.
+                                 Default: $PWD
+        -- REPO_CMD            : A shell command to run inside of the repo dir.
+                                 You must single quote characters such
+                                 as $, ;, |,  etc.
+                                 They will be evaluated after switching to the
+                                 repo dir.
+        -b name,--branch name  : Checkout a specific branch when checking.
+                                 The branch must exist.
+        -c,--committed         : Only show repos without uncommitted changes.
+        -C,--uncommitted       : Only show repos with uncommitted changes.
+        -D,--debug             : Print some debugging info while running.
+        -h,--help              : Show this message.
+        -l,--local             : Only show repos without a remote.
+        -p,--pushed            : Only show repos with all commits pushed to
+                                 remote.
+        -P,--unpushed          : Only show repos with commits unpushed to
+                                 remote.
+        -q,--quiet             : Quiet error messages.
+        -r,--remote            : Only show repos with a remote.
+        -v,--version           : Show $appname version and exit.
 
     Notes:
         -- REPO_CMD :
@@ -288,6 +342,18 @@ function print_usage_fail {
     # Print usage message and exit with an error status.
     print_usage "$@"
     exit 1
+}
+
+function printf_error {
+    # Like printf, but prints to stderr using color.
+    ((show_errors)) && {
+        printf "%b" "$RED"
+        # shellcheck disable=SC2059
+        # using all function arguments on purpose shellcheck, it's a wrapper.
+        printf "$@"
+        printf "%b" "$NC"
+        return 0
+    }
 }
 
 function run_user_cmd {
@@ -313,10 +379,19 @@ function run_user_cmd {
 }
 
 in_cmd_arg=0
+in_branch_arg=0
 declare -a user_cmd_args
+use_branch=""
 
 for arg; do
     case "$arg" in
+        "-b" | "--branch" )
+            if ((in_cmd_arg)); then
+                user_cmd_args+=("$arg")
+            else
+                in_branch_arg=1
+            fi
+            ;;
         "-c" | "--committed" )
             if ((in_cmd_arg)); then
                 user_cmd_args+=("$arg")
@@ -367,6 +442,13 @@ for arg; do
                 unpushed_only=1
             fi
             ;;
+        "-q"|"--quiet" )
+            if ((in_cmd_arg)); then
+                user_cmd_args+=("$arg")
+            else
+                show_errors=0
+            fi
+            ;;
         "-r"|"--remote" )
             if ((in_cmd_arg)); then
                 user_cmd_args+=("$arg")
@@ -394,6 +476,9 @@ for arg; do
         *)
             if ((in_cmd_arg)); then
                 user_cmd_args+=("$arg")
+            elif ((in_branch_arg)); then
+                use_branch="$arg"
+                in_branch_arg=0
             else
                 start_dirs+=("$arg")
             fi
@@ -418,7 +503,6 @@ for startdir in "${start_dirs[@]}"; do
         run_user_cmd "${git_dirs[@]}" || let errs+=$?
     else
         if (( debug_mode )); then
-
             # No sorting in debug mode.
             print_dirs "${git_dirs[@]}" || let errs+=1
         else
