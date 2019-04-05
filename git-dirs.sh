@@ -4,7 +4,7 @@
 # Optionally, print only committed or uncommitted repos.
 # -Christopher Welborn 11-28-2015
 appname="git-dirs"
-appversion="0.0.5"
+appversion="0.1.0"
 apppath="$(readlink -f "${BASH_SOURCE[0]}")"
 appscript="${apppath##*/}"
 # appdir="${apppath%/*}"
@@ -14,6 +14,7 @@ red='\e[0;31m'
 RED='\e[1;31m'
 blue='\e[0;34m'
 cyan='\e[0;36m'
+CYAN='\e[1;36m'
 green='\e[0;32m'
 lightyellow='\e[0;33m' # shellcheck disable=SC2034
 # No Color, normal/reset.
@@ -30,6 +31,8 @@ remote_only=0
 nonremote_only=0
 # Will quiet `print_error` and `printf_error` when set to 0.
 show_errors=1
+# Show current branch name beside the repo dir.
+show_branch=0
 
 function checkout {
     # git checkout, but only print errors.
@@ -158,6 +161,7 @@ function print_dirs {
     local total
     local prevbranch=""
     local checkouterr=""
+
     print_debug "    Listing repos: $#"
     print_debug "   committed_only: $committed_only"
     print_debug " uncommitted_only: $uncommitted_only"
@@ -173,25 +177,25 @@ function print_dirs {
             continue
         fi
 
+        if ! prevbranch="$(get_current_branch)"; then
+            print_debug "Cancelling, can't get branch name: $dname"
+            continue
+        fi
         if [[ -n "$use_branch" ]]; then
-            if prevbranch="$(get_current_branch)"; then
-                # Previous branch is re-checked out later, if available.
-                if ! checkouterr="$(checkout "$use_branch")"; then
-                    if [[ -n "$checkouterr" ]]; then
-                        if [[ "$checkouterr" =~ "local changes" ]]; then
-                            printf_error "%-40s %b[%blocal changes%b]\n" "$dname" "$NC" "$red" "$NC"
-                        else
-                            print_error "\nErrors when checking out '$use_branch' in: $dname"
-                            print_error "$checkouterr"
-                        fi
+            # Previous branch is re-checked out later, if available.
+            if ! checkouterr="$(checkout "$use_branch")"; then
+                if [[ -n "$checkouterr" ]]; then
+                    if [[ "$checkouterr" =~ "local changes" ]]; then
+                        printf_error "%-40s %b[%blocal changes%b]\n" "$dname" "$NC" "$red" "$NC"
+                    else
+                        print_error "\nErrors when checking out '$use_branch' in: $dname"
+                        print_error "$checkouterr"
                     fi
-                    print_debug "Cancelling, can't checkout branch: $dname"
-                    continue
                 fi
-            else
-                print_debug "Cancelling, can't get branch name: $dname"
+                print_debug "Cancelling, can't checkout branch: $dname"
                 continue
             fi
+
         fi
 
 
@@ -255,8 +259,22 @@ function print_dirs {
             fi
         fi
 
-        echo "$dname"
+        # Display repo dir, with optional branch name.
+        printf "%b%-50s%b" "$blue" "$dname" "$NC"
 
+        if ((show_branch)); then
+            if [[ -n "$prevbranch" ]]; then
+                printf "%b%s%b" "$CYAN" "$prevbranch" "$NC"
+            else
+                printf_error "%s" "Unable to get branch name."
+            fi
+        fi
+        printf "\n"
+        # Run user command?
+        if ((${#user_cmd_args[@]})); then
+            print_debug "Running user command: $usercmd ${user_cmd_args[*]}"
+            eval "${user_cmd_args[@]}" || let errs+=1
+        fi
         # Re-checkout previous branch?
         if [[ -n "$prevbranch" ]]; then
             if ! checkouterr="$(checkout "$prevbranch")"; then
@@ -301,7 +319,9 @@ function print_usage {
 
     Usage:
         $appscript -h | -v
-        $appscript [-b BRANCH] [-c | -C] [-l | -r] [-p | -P] [-q] [DIR...] [-D] ([-- REPO_CMD])
+        $appscript -B
+        $appscript [-b BRANCH] [-c | -C] [-l | -r] [-p | -P] [-q] [DIR...]
+                   [-D] ([-- REPO_CMD])
 
     Options:
         DIR                    : One or more directories to look for git repos.
@@ -313,6 +333,7 @@ function print_usage {
                                  repo dir.
         -b name,--branch name  : Checkout a specific branch when checking.
                                  The branch must exist.
+        -B,--showbranch        : Show which branch is selected for each repo.
         -c,--committed         : Only show repos without uncommitted changes.
         -C,--uncommitted       : Only show repos with uncommitted changes.
         -D,--debug             : Print some debugging info while running.
@@ -356,35 +377,20 @@ function printf_error {
     }
 }
 
-function run_user_cmd {
-    # Run a command inside each repo dir.
-    if ((${#user_cmd_args[@]} == 0)); then
-        print_error "No user command to run!"
-        return 1
-    fi
-    local errs=0 usercmd="${user_cmd_args[0]}"
-    user_cmd_args=(${user_cmd_args[@]:1})
-
-    while IFS=$'\n' read -r dname; do
-        print_debug "Switching directory to: $dname"
-        if ! cd "$dname"; then
-            print_error "Unable to cd to: $dname"
-            let errs+=1
-            continue
-        fi
-        print_debug "Running user command: $usercmd ${user_cmd_args[*]}"
-        eval "$usercmd ${user_cmd_args[*]}" || let errs+=1
-    done < <(print_dirs "${@}")
-    return $errs
-}
-
 in_cmd_arg=0
 in_branch_arg=0
-declare -a user_cmd_args
 use_branch=""
+declare -a user_cmd_args
 
 for arg; do
     case "$arg" in
+        "-B" | "--showbranch" )
+            if ((in_cmd_arg)); then
+                user_cmd_args+=("$arg")
+            else
+                show_branch=1
+            fi
+            ;;
         "-b" | "--branch" )
             if ((in_cmd_arg)); then
                 user_cmd_args+=("$arg")
@@ -497,20 +503,13 @@ for startdir in "${start_dirs[@]}"; do
         # echo "Looking at: $dname"
         # Use absolute paths for git_dirs.
         git_dirs+=("$(readlink -f "${dname%/*}")")
-    done < <(find "$startdir" -type d -name ".git" -print0)
+    done < <(find "$startdir" -type d -name ".git" -print0 | sort -z)
 
-    if ((${#user_cmd_args[@]})); then
-        run_user_cmd "${git_dirs[@]}" || let errs+=$?
-    else
-        if (( debug_mode )); then
-            # No sorting in debug mode.
-            print_dirs "${git_dirs[@]}" || let errs+=1
-        else
-            print_dirs "${git_dirs[@]}" | sort
-            exitcode=${PIPE_STATUS[0]}
-            (( exitcode == 0 )) || let errs+=1
-        fi
-    fi
+    print_dirs "${git_dirs[@]}"
+    exitcode=${PIPE_STATUS[0]}
+    (( exitcode == 0 )) || let errs+=1
+
+
 done
 
 exit $errs
