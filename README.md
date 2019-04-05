@@ -174,22 +174,43 @@ commits, or whether a repo has a remote counterpart, or is local only.
 ### Usage:
 
 ```
-Usage:
-    git-dirs -h | -v
-    git-dirs [-c | -C] [-l | -r] [-p | -P] [DIR...] [-D]
+    Usage:
+        git-dirs.sh -h | -v
+        git-dirs.sh [-b BRANCH] [-c | -C] [-l | -r] [-p | -P]
+                    [-q] [DIR...] [-D] ([-- REPO_CMD])
 
-Options:
-    DIR               : One or more directories to look for git repos.
-                        Default: ./
-    -c,--committed    : Only show repos without uncommitted changes.
-    -C,--uncommitted  : Only show repos with uncommitted changes.
-    -D,--debug        : Print some debugging info while running.
-    -h,--help         : Show this message.
-    -l,--local        : Only show repos without a remote.
-    -p,--pushed       : Only show repos with all commits pushed to remote.
-    -P,--unpushed     : Only show repos with commits unpushed to remote.
-    -r,--remote       : Only show repos with a remote.
-    -v,--version      : Show git-dirs version and exit.
+    Options:
+        DIR                    : One or more directories to look for git repos.
+                                 Default: /home/cj/scripts/git-commands
+        -- REPO_CMD            : A shell command to run inside of the repo dir.
+                                 You must single quote characters such
+                                 as $, ;, |,  etc.
+                                 They will be evaluated after switching to the
+                                 repo dir.
+        -b name,--branch name  : Checkout a specific branch when checking.
+                                 The branch must exist.
+        -c,--committed         : Only show repos without uncommitted changes.
+        -C,--uncommitted       : Only show repos with uncommitted changes.
+        -D,--debug             : Print some debugging info while running.
+        -h,--help              : Show this message.
+        -l,--local             : Only show repos without a remote.
+        -p,--pushed            : Only show repos with all commits pushed to
+                                 remote.
+        -P,--unpushed          : Only show repos with commits unpushed to
+                                 remote.
+        -q,--quiet             : Quiet error messages.
+        -r,--remote            : Only show repos with a remote.
+        -v,--version           : Show git-dirs version and exit.
+
+    Notes:
+        -- REPO_CMD :
+        REPO_CMD is a BASH command, and is evaluated after switching to
+        the repo dir. If the `cd` command fails, nothing is done.
+        You must put -- before the command.
+
+        To git a list of modified files in uncommitted repos:
+            git dirs -C -- 'echo -e "\n$PWD"; git stat | grep modified'
+            * Notice the single quotes around $PWD, ;, and |.
 ```
 
 #### Show all repos with unpushed commits to remote:
