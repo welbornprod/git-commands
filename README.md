@@ -7,7 +7,7 @@ A collection of Python and Bash scripts to add functionality to `git`.
 * [git-commands](#git-commands)
 * [git-dirs](#git-dirs)
 * [git-fileage](#git-fileage)
-* [git-filehistory](#git-filehistory)
+* [git-history](#git-history)
 * [git-listsubmodules](#git-listsubmodules)
 * [git-modified](#git-modified)
 * [git-pkg](#git-pkg)
@@ -251,24 +251,27 @@ Options:
 
 ```
 
-## git-filehistory
+## git-history
 
 A shortcut to `git log --follow -p -- FILE`. It displays every commit where
 a certain file has been modified.
 
 ### Usage:
 ```
-Usage:
-    git-filehistory -h | -v
-    git-filehistory [-c] [GIT_LOG_ARGS...] FILE
+    Usage:
+        git-history.sh -h | -v
+        git-history.sh [-c] [GIT_LOG_ARGS...] FILE
+        git-history.sh [GIT_LOG_ARGS...] -f FUNCTION FILE
 
-Options:
-    GIT_LOG_ARGS  : Any extra arguments to pass to `git log`.
-    FILE          : File name to get history for.
-                    Must be the last argument.
-    -c,--commits  : Show commits instead of diffs.
-    -h,--help     : Show this message.
-    -v,--version  : Show git-filehistory version and exit.
+    Options:
+        GIT_LOG_ARGS   : Any extra arguments to pass to `git log`.
+        FILE           : File name to get history for, or '.' for all files.
+                         Must be the last argument.
+        FUNCTION       : Function name to view history for.
+        -c,--commits   : Show commits instead of diffs.
+        -f,--function  : View history for a specific function.
+        -h,--help      : Show this message.
+        -v,--version   : Show git-filehistory version and exit.
 ```
 
 ## git-listsubmodules

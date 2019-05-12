@@ -2,7 +2,7 @@
 
 # Shortcut to `git log --follow -p -- FILE`
 # -Christopher Welborn 07-11-2015
-appname="git-filehistory"
+appname="git-history"
 appversion="0.0.4"
 apppath="$(readlink -f "${BASH_SOURCE[0]}")"
 appscript="${apppath##*/}"
@@ -50,7 +50,11 @@ function git_diff_func {
         [[ "$line" =~ $funcpat ]] && {
             # Found func def.
             in_func=1
-            found_lines+=("$last_hunk" "$line")
+            found_lines+=(
+                "Found in non-committed local changes:"
+                "$last_hunk"
+                "$line"
+            )
             continue
         }
         ((in_func)) || continue
@@ -130,7 +134,7 @@ if ((${#args[@]})) && [[ -e "${args[-1]}" ]]; then
     unset "args[-1]"
 fi
 [[ -n "$func_name" ]] && {
-
+    # Doing a function search instead.
     [[ "$filename" == "." ]] && fail_usage "Must specify a full file path."
     func_pat="$(get_func_log_pat "$func_name" "$filename")"
     if ! git log --follow -L "$func_pat" -- . 2>/dev/null; then
@@ -143,7 +147,7 @@ fi
 }
 
 if ((show_commits)); then
-    [[ "${args[*]}" =~ -L ]] && fail "git-filehistory, bad arguments: -c does not work with -L."
+    [[ "${args[*]}" =~ -L ]] && fail "$appname, bad arguments: -c does not work with -L."
 else
     args=("${args[@]}" "-p")
 fi
