@@ -3,7 +3,7 @@
 # Shortcut to `git log --follow -p -- FILE`
 # -Christopher Welborn 07-11-2015
 appname="git-history"
-appversion="0.0.4"
+appversion="0.0.5"
 apppath="$(readlink -f "${BASH_SOURCE[0]}")"
 appscript="${apppath##*/}"
 
