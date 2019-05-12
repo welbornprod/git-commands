@@ -235,20 +235,20 @@ There may be more than one "first" commit, if histories were merged.
 Usage:
     git-fileage -h | -v
     git-fileage -f | -F [GIT_SHOW_ARGS...]
-    git-fileage [-t] [-z] FILE...
+    git-fileage [-c] [-t] [-z] FILE...
 
 Options:
     FILE             : One or more file names to get the initial commit
                        date for.
     GIT_SHOW_ARGS    : Extra arguments for `git show <commit_id>`.
-    -F,--firstfull   : Show the first commit(s), with full diff.
+    -c,--commit      : Show the first commit for the file.
+    -F,--firstfull   : Show the first commit(s) in this repo, with full diff.
     -f,--first       : Alias for `git-fileage -F --no-patch`.
                        Only the commit header is shown, not the diff.
     -h,--help        : Show this message.
     -t,--timestamp   : Use the raw timestamp.
     -v,--version     : Show git-fileage version and exit.
     -z,--timezone    : Show the committer timezone also.
-
 ```
 
 ## git-history
@@ -259,9 +259,9 @@ a certain file has been modified.
 ### Usage:
 ```
     Usage:
-        git-history.sh -h | -v
-        git-history.sh [-c] [GIT_LOG_ARGS...] FILE
-        git-history.sh [GIT_LOG_ARGS...] -f FUNCTION FILE
+        git-history -h | -v
+        git-history [-c] [GIT_LOG_ARGS...] FILE
+        git-history [GIT_LOG_ARGS...] -f FUNCTION FILE
 
     Options:
         GIT_LOG_ARGS   : Any extra arguments to pass to `git log`.
