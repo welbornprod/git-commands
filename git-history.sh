@@ -3,7 +3,7 @@
 # Shortcut to `git log --follow -p -- FILE`
 # -Christopher Welborn 07-11-2015
 appname="git-history"
-appversion="0.0.5"
+appversion="0.0.6"
 apppath="$(readlink -f "${BASH_SOURCE[0]}")"
 appscript="${apppath##*/}"
 
@@ -29,7 +29,14 @@ function get_func_log_pat {
     # Arguments:
     #   $1  : The function name, with no 'def', 'function', etc.
     #   $2  : The file name to search in.
-    printf '/\([a-z]\)\{3,8\} %s/,/\(def\|}\)/:%s' "$1" "$2"
+    local cpat='\.(c|h|cpp|hpp)$'
+    if [[ "$2" =~ $cpat ]]; then
+        printf '/^\([a-zA-Z0-1_]\+\)\\? \\?%s \\?(/,/^\(}\|[a-zA-Z]\)/:%s' "$1" "$2"
+    elif [[ "$2" == *.sh ]] || [[ "$2" == *.bash ]]; then
+        printf '/\(function \)\\?\(%s {\)/,/^}/:%s' "$1" "$2"
+    else
+        printf '/\([a-z]\)\{3,8\} \(%s\)/,/\(def\|}\)/:%s' "$1" "$2"
+    fi
 }
 
 function git_diff_func {
@@ -45,6 +52,7 @@ function git_diff_func {
     local last_hunk=""
     local found_lines
     declare -a found_lines
+    ((do_debug)) && echo "git diff --minimal -G '$1' '$2'"
     while read -r line; do
         [[ "$line" =~ $hunkpat ]] && last_hunk="$line"
         [[ "$line" =~ $funcpat ]] && {
@@ -86,6 +94,7 @@ function print_usage {
                          Must be the last argument.
         FUNCTION_NAME  : Function name to view history for.
         -c,--commits   : Show commits instead of diffs.
+        -D,--debug     : Show more info about what commands are executed.
         -f,--function  : View history for a specific function.
         -h,--help      : Show this message.
         -v,--version   : Show $appname version and exit.
@@ -101,8 +110,13 @@ declare -a args
 show_commits=0
 in_func_arg=0
 func_name=""
+do_debug=0
+
 for arg; do
     case "$arg" in
+        "-D"|"--debug" )
+            do_debug=1
+            ;;
         "-f"|"--function" )
             in_func_arg=1
             ;;
@@ -137,6 +151,7 @@ fi
     # Doing a function search instead.
     [[ "$filename" == "." ]] && fail_usage "Must specify a full file path."
     func_pat="$(get_func_log_pat "$func_name" "$filename")"
+    ((do_debug)) && echo "git log --follow -L '$func_pat' -- ."
     if ! git log --follow -L "$func_pat" -- . 2>/dev/null; then
         # May be a new function, search the diff.
         if ! git_diff_func "$func_name" "$filename"; then
@@ -152,4 +167,5 @@ else
     args=("${args[@]}" "-p")
 fi
 # echo "Running: git log --follow ${args[@]} -- $filename"
+((do_debug)) && echo "git log --follow ${args[*]} -- $filename"
 git log --follow "${args[@]}" -- "$filename"
