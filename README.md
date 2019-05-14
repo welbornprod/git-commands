@@ -35,18 +35,27 @@ Make sure the script is executable (`chmod +x makelinks.sh`).
 
 You can run it like this to see what's going to happen:
 
-```
+```bash
 ./makelinks.sh -d
 ```
 
 And then to create the symlinks just run it with no arguments:
-```
+
+```bash
 ./makelinks.sh
 ```
 
 Make sure you have permissions to write to the directory you choose.
 `sudo` may be needed if you are installing in `/usr/bin` or `/usr/local/bin`.
 
+If you change your mind, you can remove the links it created:
+
+```bash
+./makelinks.sh --remove
+```
+
+It will give you a change to confirm removal of any symlinks that match the
+ git-* file names in this directory.
 
 ## Dependencies:
 
@@ -272,6 +281,36 @@ a certain file has been modified.
         -f,--function  : View history for a specific function.
         -h,--help      : Show this message.
         -v,--version   : Show git-filehistory version and exit.
+```
+
+### Notes:
+
+The `-f/--function` option is best used with a `.gitattributes` file set up
+for your programming language. If it's not set up, git doesn't know how to
+find your functions in a diff. `git-history` will try to use regex to find
+the functions if `.gitattributes` is not working, but the whole experience is
+better if you do set it up. It works best on committed changes, but again,
+`git-history` will try to use regex to find your functions in a diff of the
+working tree against the last commit.
+
+To learn more about setting this up, visit: https://git-scm.com/docs/gitattributes/#_generating_diff_text
+
+The basic gist is, you create a `.gitattributes` file with entries like this:
+```
+    *.cpp diff=cpp
+    *.py diff=python
+```
+
+..where the `diff` attribute is set to a known language (known to `git`).
+There are many builtin languages that you can use without writing a regex
+pattern to find function names. If you do have to write a regex pattern, the
+link above will show you where to put it (in `.gitconfig`).
+
+Point `.gitconfig` at it (if you want the file to work globally), by adding
+this to `.gitconfig`:
+```
+[core]
+    attributesfile=/my/path/to/.gitattributes
 ```
 
 ## git-listsubmodules
