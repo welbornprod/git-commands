@@ -386,13 +386,14 @@ Options:
 
 ## git-remotes
 
-List remote urls, branches, and delete remote branches.
+List remote urls, branches, unpushed/unpulled commits, and delete remote branches.
 
 ### Usage:
 ```
 Usage:
     git-remotes -h | -v
     git-remotes -b | -B
+    git-remotes (-u | -U) [ORIGIN/BRANCH]
     git-remotes -d [BRANCH] [ORIGIN]
 
 Options:
@@ -403,6 +404,8 @@ Options:
     -B,--allbranches  : Show all branches.
     -d,--delete       : Delete a remote branch.
     -h,--help         : Show this message.
+    -u,--unpushed     : Show unpushed commits.
+    -U,--unpulled     : Show unpulled commits.
     -v,--version      : Show git-remotes version and exit.
 ```
 

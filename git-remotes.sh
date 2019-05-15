@@ -3,7 +3,7 @@
 # Tools for listing/removing branches.
 # -Christopher Welborn 03-25-2017
 appname="git-remotes"
-appversion="0.0.1"
+appversion="0.0.2"
 apppath="$(readlink -f "${BASH_SOURCE[0]}")"
 appscript="${apppath##*/}"
 appdir="${apppath%/*}"
@@ -68,6 +68,64 @@ function fail_usage {
     exit 1
 }
 
+function git_remote_branch {
+    local status repo
+    status="$(git status --porcelain --branch)" || {
+        fail "No repo name available from \`git status\`."
+    }
+    local repo
+    repo="$(cut -d '.' -f 4 <<<"$status" | cut -d ' ' -f1)"
+    if [[ -z "$repo" ]] || [[ "$repo" == '##'* ]]; then
+        fail "No remote repo found from \`git status\`."
+    fi
+    printf "%s" "$repo"
+}
+
+function git_remote_status {
+    local statline status
+    statline="$(git status --porcelain --branch)" || {
+        fail "No repo name available from \`git status\`."
+    }
+    status="$(cut -d '[' -f2 <<<"$statline" | tr -d ']')"
+    if [[ -z "$status" ]] || [[ "$status" == '##'* ]]; then
+        fail "No remote repo found from \`git status\`."
+    fi
+    printf "%s" "$status"
+}
+
+function git_unpushed {
+    local repo=$1
+    [[ -z "$repo" ]] && repo="$(git_remote_branch)"
+    [[ -z "$repo" ]] && return 1
+    local output
+    if output="$(git log --pretty=oneline "$repo..HEAD")"; then
+        if [[ -n "$output" ]]; then
+            printf "%s\n" "$output"
+        else
+            printf "All commits pushed to: %s\n" "$repo"
+        fi
+    else
+        printf "Unable to get unpushed commits for: %s\n" "$repo"
+        return 1
+    fi
+    return 0
+}
+
+function git_unpulled {
+    local repo=$1
+    [[ -z "$repo" ]] && repo="$(git_remote_branch)"
+    [[ -z "$repo" ]] && return 1
+    local repoargs
+    repoargs="$(echo "$repo" | tr '/' ' ')"
+    if git fetch "$repoargs" 1>/dev/null 2>/dev/null; then
+        git log --pretty=oneline HEAD.."$repo"
+    else
+        printf "No changes for: %s\n" "$repo"
+        return 1
+    fi
+    return 0
+}
+
 function print_usage {
     # Show usage reason if first arg is available.
     [[ -n "$1" ]] && echo_err "\n$1\n"
@@ -77,6 +135,7 @@ function print_usage {
     Usage:
         $appscript -h | -v
         $appscript -b | -B
+        $appscript (-u | -U) [ORIGIN/BRANCH]
         $appscript -d [BRANCH] [ORIGIN]
 
     Options:
@@ -87,6 +146,8 @@ function print_usage {
         -B,--allbranches  : Show all branches.
         -d,--delete       : Delete a remote branch.
         -h,--help         : Show this message.
+        -u,--unpushed     : Show unpushed commits.
+        -U,--unpulled     : Show unpulled commits.
         -v,--version      : Show $appname version and exit.
     "
 }
@@ -136,6 +197,8 @@ declare -a nonflags
 do_all_branches=0
 do_branches=0
 do_remote_delete=0
+do_unpushed=0
+do_unpulled=0
 
 for arg; do
     case "$arg" in
@@ -152,6 +215,12 @@ for arg; do
         "-h" | "--help")
             print_usage ""
             exit 0
+            ;;
+        "-u" | "--unpushed")
+            do_unpushed=1
+            ;;
+        "-U" | "--unpulled")
+            do_unpulled=1
             ;;
         "-v" | "--version")
             echo -e "$appname v. $appversion\n"
@@ -171,6 +240,10 @@ if ((do_branches)); then
     show_branches "$arg"
 elif ((do_remote_delete)); then
     delete_remote_branch "${nonflags[0]}" "${nonflags[1]}"
+elif ((do_unpushed)); then
+    git_unpushed "${nonflags[@]}"
+elif ((do_unpulled)); then
+    git_unpulled "${nonflags[@]}"
 else
     show_remotes
 fi
