@@ -3,7 +3,7 @@
 # Shortcut to `git log --follow -p -- FILE`
 # -Christopher Welborn 07-11-2015
 appname="git-history"
-appversion="0.0.9"
+appversion="0.1.0"
 apppath="$(readlink -f "${BASH_SOURCE[0]}")"
 appscript="${apppath##*/}"
 
@@ -41,7 +41,7 @@ function echo_status {
 
 function fail {
     # Print a message to stderr and exit with an error status code.
-    echo_err "$@"
+    (($#)) && echo_err "$@"
     exit 1
 }
 
@@ -234,7 +234,8 @@ fi
         if ! git log --follow -L "$manual_pat" -- . 2>/dev/null; then
             # May be a new function, search the diff.
             if ! git_diff_func "$func_name" "$filename"; then
-                fail "Nothing in \`git log\` or \`git diff\` matching '$func_name' in: $filename"
+                echo_err "\nNothing in \`git log\` or \`git diff\` matching '$func_name' in: $filename"
+                fail "Try \`git history -S '$func_name' '$filename'\`?"
             fi
         fi
     fi
