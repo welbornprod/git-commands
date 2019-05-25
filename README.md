@@ -4,6 +4,7 @@ A collection of Python and Bash scripts to add functionality to `git`.
 
 * [git-alias](#git-alias)
 * [git-authors](#git-authors)
+* [git-branches](#git-branches)
 * [git-commands](#git-commands)
 * [git-dirs](#git-dirs)
 * [git-fileage](#git-fileage)
@@ -151,6 +152,33 @@ Options:
     DIR           : Repo directory to use.
     -h,--help     : Show this help message.
     -v,--version  : Show git-authors version and exit.
+```
+
+## git-branches
+
+List branches, unmerged branches/commits.
+
+### Usage:
+```
+Usage:
+    git-branches -h | -v
+    git-branches [-D] [-a | -r]
+    git-branches [-D] (-c | -C) [BRANCH] [CURRENT_BRANCH]
+    git-branches [-D] -m [BRANCH]
+
+Options:
+    BRANCH          : Branch to compare against.
+                      Default: master
+    CURRENT_BRANCH  : Branch to check for unmerged commits.
+                      Default: <current branch>
+    -a,--all        : List remote branches and local branches.
+    -C,--cherry     : Show unmerged commits that are actually relevant.
+    -c,--commits    : Show unmerged commits.
+    -D,--debug      : Show the actual commands that are being executed.
+    -h,--help       : Show this message.
+    -m,--unmerged   : List unmerged branches.
+    -r,--remotes    : List remote branches.
+    -v,--version    : Show git-branches version and exit.
 ```
 
 ## git-commands
