@@ -76,6 +76,15 @@ function build_maps {
         [highlight]=7
         [normal]=22
     )
+    # Aliases
+    stylenum[bold]=1
+    stylenum[b]=1
+    stylenum[d]=0
+    stylenum[i]=3
+    stylenum[u]=4
+    stylenum[f]=5
+    stylenum[h]=7
+    stylenum[n]=22
     local sname
     for sname in "${!stylenum[@]}"; do
         style[$sname]="$(codeformat "${stylenum[$sname]}")"

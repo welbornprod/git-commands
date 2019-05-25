@@ -272,7 +272,7 @@ function print_dirs {
         printf "\n"
         # Run user command?
         if ((${#user_cmd_args[@]})); then
-            print_debug "Running user command: $usercmd ${user_cmd_args[*]}"
+            print_debug "Running user command: ${user_cmd_args[*]}"
             eval "${user_cmd_args[@]}" || let errs+=1
         fi
         # Re-checkout previous branch?
