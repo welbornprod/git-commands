@@ -16,7 +16,7 @@ if [[ -e "$colr_file" ]]; then
     source "$colr_file"
     colr_auto_disable
 else
-    logger --id=$$ "git-alias.sh: missing $colr_file"
+    logger --id=$$ "$app_script: missing $colr_file"
     function colr {
         echo -e "$1"
     }
