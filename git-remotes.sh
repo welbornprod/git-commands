@@ -3,14 +3,19 @@
 # Tools for listing/removing branches.
 # -Christopher Welborn 03-25-2017
 appname="git-remotes"
-appversion="0.0.2"
+appversion="0.0.3"
 apppath="$(readlink -f "${BASH_SOURCE[0]}")"
 appscript="${apppath##*/}"
 appdir="${apppath%/*}"
 
 colr_file="$appdir/colr.sh"
 
-if [[ -e "$colr_file" ]]; then
+if hash colrc &>/dev/null; then
+    function colr {
+        # Even wrapped in a function, this is still faster than colr.sh and colr.py.
+        colrc "$@"
+    }
+elif [[ -e "$colr_file" ]]; then
     # shellcheck source=/home/cj/scripts/git-commands/colr.sh
     source "$colr_file"
     colr_auto_disable

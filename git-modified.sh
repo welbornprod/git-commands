@@ -3,13 +3,18 @@
 # ...A shortcut to: git diff-tree --no-commit-id --name-only -r COMMIT
 # -Christopher Welborn 01-30-2016
 app_name="git-modified"
-app_ver="0.0.2"
+app_ver="0.0.3"
 app_path="$(readlink -f "${BASH_SOURCE[0]}")"
 app_script="${app_path##*/}"
 app_dir="${app_path%/*}"
 
 colr_file="${app_dir}/colr.sh"
-if [[ -f "$colr_file" ]]; then
+if hash colrc &>/dev/null; then
+    function colr {
+        # Even wrapped in a function, this is still faster than colr.sh and colr.py.
+        colrc "$@"
+    }
+elif [[ -f "$colr_file" ]]; then
     # shellcheck source=/home/cj/scripts/git-commands/colr.sh
     source "$colr_file"
     colr_auto_disable
@@ -76,7 +81,7 @@ function show_commit_files {
     printf "\n%s - %s (%s):\n" "$commithash" "$commitsubj" "$commitauthor"
     local line
     IFS=$'\n'
-    while read line; do
+    while read -r line; do
         echo "    $line"
     done <<<"$output"
 }
@@ -89,7 +94,7 @@ function show_local_files {
     [[ -n "$output" ]] || return 1
     echo -e "\n$(colr "Locally modified files" "cyan"):"
     IFS=$'\n'
-    while read line; do
+    while read -r line; do
         echo "    $line"
     done <<<"$output"
 }

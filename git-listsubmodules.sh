@@ -4,12 +4,17 @@
 # Evolved from: git config --file .gitmodules --name-only --get-regexp path
 # -Christopher Welborn 12-10-2016
 appname="git-listsubmodules"
-appversion="0.0.1"
+appversion="0.0.2"
 apppath="$(readlink -f "${BASH_SOURCE[0]}")"
 appscript="${apppath##*/}"
 appdir="${apppath%/*}"
 colr_file="$appdir/colr.sh"
-if [[ -e "$colr_file" ]]; then
+if hash colrc &>/dev/null; then
+    function colr {
+        # Even wrapped in a function, this is still faster than colr.sh and colr.py.
+        colrc "$@"
+    }
+elif [[ -e "$colr_file" ]]; then
     # shellcheck source=/home/cj/scripts/git-commands/colr.sh
     source "$colr_file"
     colr_auto_disable
@@ -66,7 +71,7 @@ function format_url {
 function get_submodule_names {
     # Print submodule names only.
     local withoutpath
-    while read name; do
+    while read -r name; do
         withoutpath="${name%.path}"
         printf "%s\n" "${withoutpath#submodule.}"
     done < <(git config --file "$gitmodules_file" --name-only --get-regexp path)
@@ -116,7 +121,7 @@ let errs=0
 let total=0
 do_all=0
 ((${#patterns[@]} == 0)) && do_all=1
-while read name; do
+while read -r name; do
     name_matches=0
     for userpat in "${patterns[@]}"; do
         [[ "$name" =~ $userpat ]] || continue

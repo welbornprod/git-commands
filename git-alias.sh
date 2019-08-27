@@ -4,14 +4,19 @@
 # -Christopher Welborn 01-15-2016
 
 app_name="git-alias"
-app_version="0.1.1"
+app_version="0.1.2"
 app_path="$(readlink -f "${BASH_SOURCE[0]}")"
 app_script="${app_path##*/}"
 app_dir="${app_path%/*}"
 
 colr_file="$app_dir/colr.sh"
 
-if [[ -e "$colr_file" ]]; then
+if hash colrc &>/dev/null; then
+    function colr {
+        # Even wrapped in a function, this is still faster than colr.sh and colr.py.
+        colrc "$@"
+    }
+elif [[ -e "$colr_file" ]]; then
     # shellcheck source=/home/cj/scripts/git-commands/colr.sh
     source "$colr_file"
     colr_auto_disable
