@@ -225,7 +225,10 @@ fi
     # Try it using plain old git.
     func_pat="$(get_func_pat "$func_name" "$filename")"
     ((do_debug)) && echo_status "git log --follow -L '$func_pat' -- ."
-    if ! git log --follow -L "$func_pat" -- . 2>/dev/null; then
+    git log --follow -L "$func_pat" -- . 2>/dev/null
+    gitret=$?
+    # 141 means the user quit `less` using `Q`. It's not an error.
+    if ((gitret != 0)) && ((gitret != 141)); then
         ((has_attributes)) && {
             echo_err "Can't find anything with '$func_pat', trying manual regex..."
         }

@@ -5,13 +5,20 @@
 # Heavily modified for colors, clarity, etc.
 # -Christopher Welborn 02-01-2017
 appname="git-size-diff"
-appversion="0.0.1"
+appversion="0.0.2"
 apppath="$(readlink -f "${BASH_SOURCE[0]}")"
 appscript="${apppath##*/}"
 appdir="${apppath%/*}"
 colr_file="$appdir/colr.sh"
+using_colrc=0
 
-if [[ -e "$colr_file" ]]; then
+if hash colrc &>/dev/null; then
+    using_colrc=1
+    function colr {
+        # Even wrapped in a function, this is still faster than colr.sh and colr.py.
+        colrc "$@"
+    }
+elif [[ -e "$colr_file" ]]; then
     # shellcheck source=/home/cj/scripts/git-commands/colr.sh
     source "$colr_file"
     colr_auto_disable
@@ -186,7 +193,8 @@ while read -r srcmode dstmode srcsha1 dstsha1 status srcpath dstpath; do
                 "$srcsha1" \
                 "$dstsha1" \
                 "$status" \
-                "$srcpath"
+                "$srcpath" \
+                "$dstpath"
             continue
             ;;
     esac
@@ -197,6 +205,7 @@ while read -r srcmode dstmode srcsha1 dstsha1 status srcpath dstpath; do
     elif ((bytes < 0)); then
         bytescolor="cyan"
     fi
+
     printf '%s %s %s\n' \
         "$(colr "$(printf "%10s" "$bytes")" "$bytescolor")" \
         "$(colr "$status" "$pathcolor" "reset" "bright")" \
@@ -205,6 +214,8 @@ done <<<"$gitoutput"
 
 totalcolor="red"
 ((total < 1)) && totalcolor="green"
+if ((total < 0)) && ((using_colrc)); then
+    total="\\$total"
+fi
 printf "\nTotal: %s\n" "$(colr "$total" "$totalcolor" "reset" "bright")"
 
-set +x
