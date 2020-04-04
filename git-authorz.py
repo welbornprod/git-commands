@@ -137,7 +137,7 @@ def get_github_authors(user=None, repo=None, fallback_dir=None, header=None):
     authors = resp.json()
     for authorinfo in authors:
         login = authorinfo['login']
-        author_url = authorinfo['url']
+        author_url = authorinfo['html_url']
         print(f'[{login}]({author_url})')
     return 0
 
