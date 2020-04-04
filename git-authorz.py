@@ -32,31 +32,39 @@ config = load_json_settings(
         'github_user': None,
     }
 )
+if (config.filename != CONFIGNAME) and os.path.exists(CONFIGNAME):
+    # Merge local config.
+    config.update(load_json_settings(CONFIGNAME))
+
 
 GH_USER = config['github_user'] or '<not set>'
+GH_REPO = os.path.split(os.getcwd())[-1]
+
 USAGESTR = f"""{VERSIONSTR}
     Usage:
         {SCRIPT} [-h | -v]
         {SCRIPT} [DIR]
-        {SCRIPT} -g [-u name] [-r name] [DIR]
+        {SCRIPT} -g [-H header] [-u name] [-r name] [DIR]
 
     Options:
         DIR                  : Repo directory to use.
         -g,--github          : Get authors from github repo.
+        -H txt,--header txt  : Markdown header for output, like:
+                                   git-authorz -g -H "# Contributors"
         -h,--help            : Show this help message.
         -r name,--repo name  : Name of github repo, if not the same as CWD.
+                               Current repo: {GH_REPO}
         -u name,--user name  : Owner of github repo, if not set in config.
-                               Config setting: {GH_USER}
+                               Current config: {GH_USER}
         -v,--version         : Show {NAME} version and exit.
 """
-
 
 
 def main(argd):
     """ Main entry point, expects doctopt arg dict as argd. """
     if argd['--github']:
         exitcode = get_github_authors(
-            username=argd['--user'],
+            user=argd['--user'],
             repo=argd['--repo'],
             fallback_dir=argd['DIR'],
         )
@@ -108,16 +116,23 @@ def get_authors():
     return 0
 
 
-def get_github_authors(username=None, reponame=None, fallback_dir=None):
-    if not username:
-        username = config.get('github_user', None)
-    if username is None:
+def get_github_authors(user=None, repo=None, fallback_dir=None, header=None):
+    if not user:
+        user = config.get('github_user', None)
+    if user is None:
         raise InvalidArg('No github user name specified in options/config!')
 
-    if not reponame:
-        reponame = os.path.split(fallback_dir or os.getcwd())[-1]
-    api_url = f'repos/{username}/{reponame}/contributors'
+    if not repo:
+        repo = os.path.split(fallback_dir or os.getcwd())[-1]
+    api_url = f'repos/{user}/{repo}/contributors'
     url = f'https://api.github.com/{api_url}'
+    print_info(f'Getting authors for: {user}/{repo}')
+    if header:
+        if not header.startswith('#'):
+            header = f'# {header}'
+        if not header.endswith('\n'):
+            header = f'{header}\n'
+        print(header)
     resp = requests.get(url)
     authors = resp.json()
     for authorinfo in authors:
@@ -190,6 +205,14 @@ def print_err(*args, **kwargs):
         )
 
     print(msg, **kwargs)
+
+
+def print_info(*args, **kwargs):
+    msg = C(kwargs.get('sep', ' ')).join(
+        C(s, 'cyan')
+        for s in args
+    )
+    print_err(msg, **kwargs)
 
 
 class InvalidArg(ValueError):
