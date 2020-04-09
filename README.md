@@ -55,7 +55,7 @@ If you change your mind, you can remove the links it created:
 ./makelinks.sh --remove
 ```
 
-It will give you a change to confirm removal of any symlinks that match the
+It will give you a chance to confirm removal of any symlinks that match the
  git-* file names in this directory.
 
 ## Dependencies:
@@ -145,13 +145,19 @@ Lists all authors (with email addresses) from all commits in a repo.
 
 ```
 Usage:
-    git-authors [-h | -v]
-    git-authors [DIR]
+    git-authorz [-h | -v]
+    git-authorz [DIR]
+    git-authorz -g [-H header] [-u name] [-r name] [DIR]
 
 Options:
-    DIR           : Repo directory to use.
-    -h,--help     : Show this help message.
-    -v,--version  : Show git-authors version and exit.
+    DIR                  : Repo directory to use.
+    -g,--github          : Get authors from github repo.
+    -H txt,--header txt  : Markdown header for output, like:
+                               git-authorz -g -H "# Contributors"
+    -h,--help            : Show this help message.
+    -r name,--repo name  : Name of github repo, if not the same as CWD.
+    -u name,--user name  : Owner of github repo, if not set in config.
+    -v,--version         : Show git-authorz version and exit.
 ```
 
 ## git-branches
